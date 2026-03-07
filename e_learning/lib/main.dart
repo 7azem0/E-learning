@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'authentication/screens/register_screen.dart';
+import 'authentication/screens/login.dart';
+import 'authentication/service.dart';
 
 void main() {
   runApp(const ELearningApp());
@@ -13,19 +16,16 @@ class ELearningApp extends StatelessWidget {
       title: 'E-Learning',
       debugShowCheckedModeBanner: false,
 
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-        useMaterial3: true,
-      ),
+      theme: ThemeData(primarySwatch: Colors.blue, useMaterial3: true),
 
       // Initial screen
-      home: const HomePage(),
+      home: RegisterScreen(),
 
       // Future navigation routes
       routes: {
+        '/register': (context) => RegisterScreen(),
+        '/login': (context) => LoginScreen(),
         '/home': (context) => const HomePage(),
-        // '/login': (context) => const LoginPage(),
-        // '/courses': (context) => const CoursesPage(),
       },
     );
   }
@@ -40,6 +40,16 @@ class HomePage extends StatelessWidget {
       appBar: AppBar(
         title: const Text('E-Learning App'),
         centerTitle: true,
+
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.logout),
+            tooltip: 'Logout',
+            onPressed: () {
+              Navigator.pushReplacementNamed(context, '/login');
+            },
+          ),
+        ],
       ),
 
       body: Center(
@@ -48,10 +58,7 @@ class HomePage extends StatelessWidget {
           children: [
             const Text(
               'Welcome to E-Learning',
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-              ),
+              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
             ),
 
             const SizedBox(height: 20),
@@ -59,9 +66,7 @@ class HomePage extends StatelessWidget {
             ElevatedButton(
               onPressed: () {
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Start building features 🚀'),
-                  ),
+                  const SnackBar(content: Text('Start building features 🚀')),
                 );
               },
               child: const Text('Get Started'),
@@ -72,18 +77,9 @@ class HomePage extends StatelessWidget {
 
       bottomNavigationBar: BottomNavigationBar(
         items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home),
-            label: 'Home',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.book),
-            label: 'Courses',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person),
-            label: 'Profile',
-          ),
+          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
+          BottomNavigationBarItem(icon: Icon(Icons.book), label: 'Courses'),
+          BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
         ],
       ),
     );
