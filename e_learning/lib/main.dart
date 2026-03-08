@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'authentication/screens/register_screen.dart';
 import 'authentication/screens/login.dart';
-import 'authentication/service.dart';
 
 void main() {
   runApp(const ELearningApp());
