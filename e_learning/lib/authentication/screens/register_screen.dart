@@ -17,6 +17,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final TextEditingController confirmPasswordController =
       TextEditingController();
 
+  String _selectedRole = 'User';
   bool _isLoading = false;
 
   @override
@@ -123,6 +124,27 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   },
                 ),
 
+                const SizedBox(height: 20),
+
+                // Role Selection
+                DropdownButtonFormField<String>(
+                  value: _selectedRole,
+                  decoration: const InputDecoration(
+                    labelText: 'Role',
+                    border: OutlineInputBorder(),
+                    prefixIcon: Icon(Icons.security),
+                  ),
+                  items: const [
+                    DropdownMenuItem(value: 'User', child: Text('User')),
+                    DropdownMenuItem(value: 'Admin', child: Text('Admin')),
+                  ],
+                  onChanged: (value) {
+                    setState(() {
+                      _selectedRole = value!;
+                    });
+                  },
+                ),
+
                 const SizedBox(height: 30),
 
                 // Register Button
@@ -141,6 +163,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                               name: name,
                               email: email,
                               password: password,
+                              role: _selectedRole,
                             );
 
                             setState(() => _isLoading = false);
