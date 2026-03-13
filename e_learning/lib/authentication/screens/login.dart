@@ -100,18 +100,16 @@ class _LoginScreenState extends State<LoginScreen> {
 
                             setState(() => _isLoading = false);
 
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text(
-                                  result == 'Success'
-                                      ? 'Login successful!'
-                                      : result,
-                                ),
-                              ),
-                            );
-
-                            if (result == 'Success') {
+                            if (result.startsWith('Success')) {
+                              final role = result.split(':')[1];
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(content: Text('Login successful! Logged in as $role')),
+                              );
                               Navigator.pushReplacementNamed(context, '/home');
+                            } else {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(content: Text(result)),
+                              );
                             }
                           }
                         },
