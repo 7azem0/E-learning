@@ -18,75 +18,30 @@ class ELearningApp extends StatelessWidget {
       title: 'E-Learning',
       debugShowCheckedModeBanner: false,
 
-      theme: ThemeData(primarySwatch: Colors.blue, useMaterial3: true),
+      theme: ThemeData(
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: Colors.indigo,
+          primary: Colors.indigo,
+          secondary: Colors.teal,
+        ),
+        useMaterial3: true,
+        appBarTheme: const AppBarTheme(
+          centerTitle: true,
+          elevation: 0,
+        ),
+      ),
 
       // Initial screen
-      home: RegisterScreen(),
+      initialRoute: '/login',
 
-      // Future navigation routes
+      // App navigation routes
       routes: {
-        '/register': (context) => RegisterScreen(),
-        '/login': (context) => LoginScreen(),
-        '/home': (context) => const HomePage(),
+        '/register': (context) => const RegisterScreen(),
+        '/login': (context) => const LoginScreen(),
         '/student_dashboard': (context) => const StudentDashboard(),
         '/instructor_dashboard': (context) => const InstructorDashboard(),
         '/admin_dashboard': (context) => const AdminDashboard(),
       },
-    );
-  }
-}
-
-class HomePage extends StatelessWidget {
-  const HomePage({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('E-Learning App'),
-        centerTitle: true,
-
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.logout),
-            tooltip: 'Logout',
-            onPressed: () {
-              Navigator.pushReplacementNamed(context, '/login');
-            },
-          ),
-        ],
-      ),
-
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Text(
-              'Welcome to E-Learning',
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-            ),
-
-            const SizedBox(height: 20),
-
-            ElevatedButton(
-              onPressed: () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Start building features 🚀')),
-                );
-              },
-              child: const Text('Get Started'),
-            ),
-          ],
-        ),
-      ),
-
-      bottomNavigationBar: BottomNavigationBar(
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
-          BottomNavigationBarItem(icon: Icon(Icons.book), label: 'Courses'),
-          BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
-        ],
-      ),
     );
   }
 }
