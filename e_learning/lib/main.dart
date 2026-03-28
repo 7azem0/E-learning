@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'authentication/screens/register_screen.dart';
 import 'authentication/screens/login.dart';
+import 'student/student_dashboard.dart';
+import 'instructor/instructor_dashboard.dart';
+import 'admin/admin_dashboard.dart';
 
 void main() {
   runApp(const ELearningApp());
@@ -25,6 +28,9 @@ class ELearningApp extends StatelessWidget {
         '/register': (context) => RegisterScreen(),
         '/login': (context) => LoginScreen(),
         '/home': (context) => const HomePage(),
+        '/student_dashboard': (context) => const StudentDashboard(),
+        '/instructor_dashboard': (context) => const InstructorDashboard(),
+        '/admin_dashboard': (context) => const AdminDashboard(),
       },
     );
   }

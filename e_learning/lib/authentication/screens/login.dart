@@ -141,6 +141,32 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                   ],
                 ),
+                const SizedBox(height: 30),
+                const Divider(),
+                const SizedBox(height: 10),
+                const Text('Quick UI Testing:', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.grey)),
+                const SizedBox(height: 10),
+                Wrap(
+                  spacing: 10,
+                  alignment: WrapAlignment.center,
+                  children: [
+                    ElevatedButton.icon(
+                      icon: const Icon(Icons.school, size: 16),
+                      label: const Text('Student'),
+                      onPressed: () => Navigator.pushReplacementNamed(context, '/student_dashboard'),
+                    ),
+                    ElevatedButton.icon(
+                      icon: const Icon(Icons.co_present, size: 16),
+                      label: const Text('Instructor'),
+                      onPressed: () => Navigator.pushReplacementNamed(context, '/instructor_dashboard'),
+                    ),
+                    ElevatedButton.icon(
+                      icon: const Icon(Icons.admin_panel_settings, size: 16),
+                      label: const Text('Admin'),
+                      onPressed: () => Navigator.pushReplacementNamed(context, '/admin_dashboard'),
+                    ),
+                  ],
+                ),
               ],
             ),
           ),
