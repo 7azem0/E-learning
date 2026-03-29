@@ -31,10 +31,8 @@ class ELearningApp extends StatelessWidget {
         ),
       ),
 
-      // Initial screen
       initialRoute: '/login',
 
-      // App navigation routes
       routes: {
         '/register': (context) => const RegisterScreen(),
         '/login': (context) => const LoginScreen(),

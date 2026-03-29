@@ -74,7 +74,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         ),
                         const SizedBox(height: 16),
 
-                        // Email
+
                         TextFormField(
                           controller: emailController,
                           keyboardType: TextInputType.emailAddress,
@@ -97,7 +97,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         ),
                         const SizedBox(height: 16),
 
-                        // Password
+
                         TextFormField(
                           controller: passwordController,
                           obscureText: true,
@@ -120,7 +120,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         ),
                         const SizedBox(height: 16),
 
-                        // Confirm Password
+
                         TextFormField(
                           controller: confirmPasswordController,
                           obscureText: true,
@@ -143,7 +143,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         ),
                         const SizedBox(height: 16),
 
-                        // Role Selection
                         DropdownButtonFormField<String>(
                           value: _selectedRole,
                           decoration: InputDecoration(
@@ -166,7 +165,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         ),
                         const SizedBox(height: 32),
 
-                        // Register Button
                         _isLoading
                             ? const CircularProgressIndicator()
                             : SizedBox(

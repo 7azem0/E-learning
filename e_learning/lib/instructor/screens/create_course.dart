@@ -58,7 +58,7 @@ class _CreateCourseScreenState extends State<CreateCourseScreen> {
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(content: Text('Course Created Successfully!')),
                       );
-                      Navigator.pop(context); // Go back to manage courses
+                      Navigator.pop(context); 
                     }
                   },
                   child: const Text('Publish Course', style: TextStyle(fontSize: 18)),

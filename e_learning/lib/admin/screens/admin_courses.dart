@@ -17,7 +17,6 @@ class AdminCoursesScreen extends StatelessWidget {
         itemCount: MockData.courses.length,
         itemBuilder: (context, index) {
           final course = MockData.courses[index];
-          // Mock some courses as pending approval just to show variation
           bool isPending = index % 2 != 0; 
           
           return Card(

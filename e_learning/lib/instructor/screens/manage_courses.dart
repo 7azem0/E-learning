@@ -7,7 +7,6 @@ class ManageCoursesScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Simulate instructor's own courses
     final myCourses = MockData.courses.where((c) => c.instructorName == 'Jane Smith').toList();
 
     return Scaffold(

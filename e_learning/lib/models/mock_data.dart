@@ -12,7 +12,7 @@ class User {
     required this.name,
     required this.email,
     required this.role,
-    this.imageUrl = 'https://via.placeholder.com/150',
+    this.imageUrl = 'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?q=80&w=150&h=150&fit=crop',
   });
 }
 
@@ -34,7 +34,7 @@ class Course {
     required this.price,
     this.rating = 4.5,
     this.studentsEnrolled = 0,
-    this.imageUrl = 'https://via.placeholder.com/300x150',
+    this.imageUrl = 'https://images.unsplash.com/photo-1633356122544-f134324ef6db?q=80&w=300&h=150&fit=crop',
     this.description = 'Learn the basics and advanced topics in this comprehensive course.',
     this.progress = 0.0,
   });

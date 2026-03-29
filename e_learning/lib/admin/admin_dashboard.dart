@@ -34,7 +34,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
         },
         selectedItemColor: Colors.redAccent,
         unselectedItemColor: Colors.grey,
-        type: BottomNavigationBarType.fixed, // Needed for > 3 items
+        type: BottomNavigationBarType.fixed, 
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.dashboard), label: 'Dashboard'),
           BottomNavigationBarItem(icon: Icon(Icons.people), label: 'Users'),

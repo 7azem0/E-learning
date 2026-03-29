@@ -7,7 +7,7 @@ class InstructorProfile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Instructor mock
+
     final User? user = MockData.users.firstWhereOrNull((u) => u.name.contains('Yasmine Ali'));
 
     if (user == null) {
@@ -39,8 +39,7 @@ class InstructorProfile extends StatelessWidget {
                 children: [
                   CircleAvatar(
                     radius: 50,
-                    backgroundImage: NetworkImage(user.imageUrl), // Mock image URL
-                    backgroundColor: Colors.grey[200],
+                    backgroundImage: NetworkImage(user.imageUrl), 
                     child: user.imageUrl.isEmpty ? const Icon(Icons.person, size: 50, color: Colors.grey) : null,
                   ),
                   Positioned(
