@@ -8,7 +8,7 @@ class InstructorProfile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // Instructor mock
-    final User? user = MockData.users.firstWhereOrNull((u) => u.name.contains('Jane'));
+    final User? user = MockData.users.firstWhereOrNull((u) => u.name.contains('Yasmine Ali'));
 
     if (user == null) {
       return Scaffold(

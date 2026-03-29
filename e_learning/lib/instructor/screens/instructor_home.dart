@@ -16,7 +16,7 @@ class InstructorHome extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('Welcome back, Jane!', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+            const Text('Welcome back, Instructor!', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
             const SizedBox(height: 8),
             const Text('Here is an overview of your instructor statistics.', style: TextStyle(color: Colors.grey, fontSize: 16)),
             const SizedBox(height: 24),

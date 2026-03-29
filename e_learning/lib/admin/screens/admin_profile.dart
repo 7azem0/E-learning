@@ -8,7 +8,7 @@ class AdminProfile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // Admin mock
-    final User? user = MockData.users.firstWhereOrNull((u) => u.name.contains('Admin'));
+    final User? user = MockData.users.firstWhereOrNull((u) => u.name.contains('Mostafa Kamal'));
 
     if (user == null) {
       return Scaffold(
