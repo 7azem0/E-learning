@@ -17,7 +17,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final TextEditingController confirmPasswordController =
       TextEditingController();
 
-  String _selectedRole = 'User';
+  String _selectedRole = 'student';
   bool _isLoading = false;
 
   @override

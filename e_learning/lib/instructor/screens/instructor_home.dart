@@ -44,12 +44,12 @@ class InstructorHome extends StatelessWidget {
               children: const [
                 ListTile(
                   leading: CircleAvatar(backgroundColor: Colors.blueAccent, child: Icon(Icons.person_add, color: Colors.white)),
-                  title: Text('John Doe enrolled in Flutter for Beginners'),
+                  title: Text('Fahd Sal enrolled in Flutter for Beginners'),
                   subtitle: Text('2 hours ago'),
                 ),
                 ListTile(
                   leading: CircleAvatar(backgroundColor: Colors.orangeAccent, child: Icon(Icons.star, color: Colors.white)),
-                  title: Text('Emma left a 5-star review'),
+                  title: Text('Fahd left a 5-star review'),
                   subtitle: Text('5 hours ago'),
                 ),
                 ListTile(

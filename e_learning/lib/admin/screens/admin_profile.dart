@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:collection/collection.dart';
 import '../../models/mock_data.dart';
 
 class AdminProfile extends StatelessWidget {
@@ -7,7 +8,20 @@ class AdminProfile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // Admin mock
-    final user = MockData.users.firstWhere((u) => u.name.contains('Admin'));
+    final User? user = MockData.users.firstWhereOrNull((u) => u.name.contains('Admin'));
+
+    if (user == null) {
+      return Scaffold(
+        appBar: AppBar(
+          title: const Text('Admin Preferences', style: TextStyle(fontWeight: FontWeight.bold)),
+          backgroundColor: Colors.redAccent,
+          foregroundColor: Colors.white,
+        ),
+        body: const Center(
+          child: Text('No user found.', style: TextStyle(fontSize: 18)),
+        ),
+      );
+    }
 
     return Scaffold(
       appBar: AppBar(
