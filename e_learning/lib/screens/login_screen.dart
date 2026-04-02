@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../service.dart';
+import '../services/authentication_service.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -10,10 +10,8 @@ class LoginScreen extends StatefulWidget {
 
 class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
-
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
-
   bool _isLoading = false;
 
   @override
@@ -28,12 +26,8 @@ class _LoginScreenState extends State<LoginScreen> {
             child: Column(
               children: [
                 const SizedBox(height: 40),
-
-                const Text(
-                  "Welcome Back",
-                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-                ),
-
+                const Text("Welcome Back",
+                    style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
                 const SizedBox(height: 40),
 
                 // Email
@@ -46,18 +40,13 @@ class _LoginScreenState extends State<LoginScreen> {
                     prefixIcon: Icon(Icons.email),
                   ),
                   validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please enter your email';
-                    }
-                    if (!RegExp(
-                      r'^[\w-\.]+@([\w-]+\.)+[\w]{2,4}$',
-                    ).hasMatch(value)) {
-                      return 'Please enter a valid email address';
+                    if (value == null || value.isEmpty) return 'Please enter your email';
+                    if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w]{2,4}$').hasMatch(value)) {
+                      return 'Please enter a valid email';
                     }
                     return null;
                   },
                 ),
-
                 const SizedBox(height: 20),
 
                 // Password
@@ -70,16 +59,11 @@ class _LoginScreenState extends State<LoginScreen> {
                     prefixIcon: Icon(Icons.lock),
                   ),
                   validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please enter your password';
-                    }
-                    if (value.length < 6) {
-                      return 'Password must be at least 6 characters';
-                    }
+                    if (value == null || value.isEmpty) return 'Please enter your password';
+                    if (value.length < 6) return 'Password must be at least 6 characters';
                     return null;
                   },
                 ),
-
                 const SizedBox(height: 30),
 
                 // Login Button
@@ -89,25 +73,14 @@ class _LoginScreenState extends State<LoginScreen> {
                         onPressed: () async {
                           if (_formKey.currentState!.validate()) {
                             setState(() => _isLoading = true);
-
-                            String email = emailController.text.trim();
-                            String password = passwordController.text.trim();
-
                             String result = await AuthService().loginUser(
-                              email: email,
-                              password: password,
+                              email: emailController.text.trim(),
+                              password: passwordController.text.trim(),
                             );
-
                             setState(() => _isLoading = false);
 
                             ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text(
-                                  result == 'Success'
-                                      ? 'Login successful!'
-                                      : result,
-                                ),
-                              ),
+                              SnackBar(content: Text(result == 'Success' ? 'Login successful!' : result)),
                             );
 
                             if (result == 'Success') {
@@ -116,10 +89,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           }
                         },
                         child: const Padding(
-                          padding: EdgeInsets.symmetric(
-                            vertical: 15,
-                            horizontal: 50,
-                          ),
+                          padding: EdgeInsets.symmetric(vertical: 15, horizontal: 50),
                           child: Text('Login', style: TextStyle(fontSize: 18)),
                         ),
                       ),
@@ -133,13 +103,8 @@ class _LoginScreenState extends State<LoginScreen> {
                       onTap: () {
                         Navigator.pushReplacementNamed(context, '/register');
                       },
-                      child: const Text(
-                        "Register",
-                        style: TextStyle(
-                          color: Colors.blue,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
+                      child: const Text("Register",
+                          style: TextStyle(color: Colors.blue, fontWeight: FontWeight.bold)),
                     ),
                   ],
                 ),
