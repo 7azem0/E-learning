@@ -59,7 +59,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
   }
 
-  void _saveProfile() {
+  Future<void> _saveProfile() async {
     final name = _nameController.text.trim();
     final email = _emailController.text.trim();
 
@@ -77,7 +77,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
 
     if (result != 'Success') {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(result)));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(await result)));
       return;
     }
 

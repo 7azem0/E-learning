@@ -17,6 +17,35 @@ class _RegisterScreenState extends State<RegisterScreen> {
   bool _isLoading = false;
 
   @override
+  void dispose() {
+    nameController.dispose();
+    emailController.dispose();
+    passwordController.dispose();
+    confirmPasswordController.dispose();
+    super.dispose();
+  }
+
+  void _showErrorSnackbar(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: Colors.red,
+        duration: const Duration(seconds: 3),
+      ),
+    );
+  }
+
+  void _showSuccessSnackbar(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: Colors.green,
+        duration: const Duration(seconds: 2),
+      ),
+    );
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text("Register")),
@@ -47,6 +76,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 // Email
                 TextFormField(
                   controller: emailController,
+                  keyboardType: TextInputType.emailAddress,
                   decoration: const InputDecoration(
                     labelText: 'Email Address',
                     border: OutlineInputBorder(),
@@ -70,6 +100,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     labelText: 'Password',
                     border: OutlineInputBorder(),
                     prefixIcon: Icon(Icons.lock),
+                    helperText: 'At least 6 characters',
                   ),
                   validator: (value) {
                     if (value == null || value.isEmpty) return 'Please enter your password';
@@ -89,7 +120,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     prefixIcon: Icon(Icons.lock),
                   ),
                   validator: (value) {
-                    if (value != passwordController.text) return 'Passwords do not match';
+                    if (value != passwordController.text) {
+                      return 'Passwords do not match';
+                    }
                     return null;
                   },
                 ),
@@ -98,32 +131,35 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 // Register Button
                 _isLoading
                     ? const CircularProgressIndicator()
-                    : ElevatedButton(
-                        onPressed: () async {
-                          if (_formKey.currentState!.validate()) {
-                            setState(() => _isLoading = true);
-                            String result = await AuthService().registerUser(
-                              name: nameController.text.trim(),
-                              email: emailController.text.trim(),
-                              password: passwordController.text.trim(),
-                            );
-                            setState(() => _isLoading = false);
+                    : SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton(
+                          onPressed: () async {
+                            if (_formKey.currentState!.validate()) {
+                              setState(() => _isLoading = true);
+                              String result = await AuthService().registerUser(
+                                name: nameController.text.trim(),
+                                email: emailController.text.trim(),
+                                password: passwordController.text.trim(),
+                              );
+                              setState(() => _isLoading = false);
 
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                  content: Text(result == 'Success'
-                                      ? 'Registration successful! Please login.'
-                                      : result)),
-                            );
-
-                            if (result == 'Success') {
-                              Navigator.pushReplacementNamed(context, '/login');
+                              if (result == 'Success') {
+                                _showSuccessSnackbar('Registration successful! Logging in...');
+                                // Wait a moment and navigate to login
+                                await Future.delayed(const Duration(seconds: 1));
+                                if (mounted) {
+                                  Navigator.pushReplacementNamed(context, '/login');
+                                }
+                              } else {
+                                _showErrorSnackbar(result);
+                              }
                             }
-                          }
-                        },
-                        child: const Padding(
-                          padding: EdgeInsets.symmetric(vertical: 15, horizontal: 50),
-                          child: Text('Register', style: TextStyle(fontSize: 18)),
+                          },
+                          child: const Padding(
+                            padding: EdgeInsets.symmetric(vertical: 15),
+                            child: Text('Register', style: TextStyle(fontSize: 18)),
+                          ),
                         ),
                       ),
 
