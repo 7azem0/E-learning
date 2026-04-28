@@ -10,6 +10,7 @@ class User {
   final String email;
   final String? avatarUrl;
   final DateTime createdAt;
+  final bool isAdmin;
 
   User({
     required this.uid,
@@ -17,6 +18,7 @@ class User {
     required this.email,
     this.avatarUrl,
     required this.createdAt,
+    this.isAdmin = false,
   });
 
   factory User.fromFirestore(DocumentSnapshot doc) {
@@ -27,6 +29,7 @@ class User {
       email: data['email'] ?? '',
       avatarUrl: data['avatarUrl'],
       createdAt: (data['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
+      isAdmin: data['isAdmin'] ?? false,
     );
   }
 

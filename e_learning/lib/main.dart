@@ -1,4 +1,5 @@
 import 'package:e_learning/firebase_options.dart';
+import 'package:e_learning/screens/admin_panel_screen.dart';
 import 'package:e_learning/widgets/auth_wrapper.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
@@ -71,6 +72,7 @@ class ELearningApp extends StatelessWidget {
         '/home': (context) => const HomeScreen(),
         '/courses': (context) => const CoursesScreen(),
         '/profile': (context) => const ProfileScreen(),
+        '/admin': (context) => const AdminPanelScreen(),
       },
     );
   }

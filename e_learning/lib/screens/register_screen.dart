@@ -120,7 +120,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           decoration: InputDecoration(
                             labelText: 'Full Name',
                             prefixIcon: const Icon(Icons.person_outline),
-                            hintText: 'John Doe',
+                            hintText: 'Naaaaaame',
                           ),
                           validator: (value) => value!.isEmpty ? 'Please enter your full name' : null,
                         ),
@@ -139,7 +139,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           validator: (value) {
                             if (value == null || value.isEmpty) return 'Please enter your email';
                             if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w]{2,4}$').hasMatch(value)) {
-                              return 'Please enter a valid email';
+                              return 'Please enter a wild email';
                             }
                             return null;
                           },

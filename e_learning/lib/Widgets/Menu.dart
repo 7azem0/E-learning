@@ -89,6 +89,15 @@ class Menu extends StatelessWidget {
               Navigator.pushNamed(context, '/profile');
             },
           ),
+             if (AuthService().currentUser?.isAdmin == true)
+          _DrawerMenuItem(
+            icon: Icons.admin_panel_settings_outlined,
+            label: "Admin Panel",
+            onTap: () {
+              Navigator.pop(context);
+              Navigator.pushNamed(context, '/admin');
+            },
+          ),
 
           const Padding(
             padding: EdgeInsets.symmetric(vertical: 12, horizontal: 16),
@@ -138,7 +147,7 @@ class Menu extends StatelessWidget {
             },
           ),
 
-          const Spacer(),
+        const SizedBox(height: 16),
 
           // Footer
           Padding(
