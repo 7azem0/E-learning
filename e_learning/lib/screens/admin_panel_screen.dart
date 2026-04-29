@@ -1,6 +1,5 @@
 // ignore_for_file: avoid_web_libraries_in_flutter, deprecated_member_use
 
-
 import 'dart:async';
 import 'dart:html' as html;
 import 'dart:typed_data';
@@ -16,9 +15,10 @@ class AdminPanelScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Admin Panel'),
+        title: const Text('Admin Panel', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24)),
         backgroundColor: const Color(0xFF6366F1),
         foregroundColor: Colors.white,
+        elevation: 0,
       ),
       body: StreamBuilder<QuerySnapshot>(
         stream: AdminService().getCourses(),
@@ -30,12 +30,78 @@ class AdminPanelScreen extends StatelessWidget {
           return ListView(
             padding: const EdgeInsets.all(16),
             children: [
-              _buildAddButton(
-                label: 'Add Course',
-                onTap: () => _showCourseDialog(context),
+              // Add Course Button with modern design
+              Container(
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [Color(0xFF6366F1), Color(0xFF8B5CF6)],
+                  ),
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: [
+                    BoxShadow(
+                      color: const Color(0xFF6366F1).withOpacity(0.3),
+                      blurRadius: 15,
+                      offset: const Offset(0, 8),
+                    ),
+                  ],
+                ),
+                child: Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    onTap: () => _showCourseDialog(context),
+                    borderRadius: BorderRadius.circular(16),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: const [
+                          Icon(Icons.add_circle_outline, color: Colors.white, size: 24),
+                          SizedBox(width: 12),
+                          Text(
+                            'Add New Course',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 18,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 24),
+
+              // Courses Section
+              Text(
+                'Manage Courses',
+                style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
               ),
               const SizedBox(height: 12),
-              ...courses.map((course) => _CourseCard(course: course)),
+
+              if (courses.isEmpty)
+                Center(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 40),
+                    child: Column(
+                      children: [
+                        Icon(Icons.school_outlined, size: 48, color: Colors.grey.shade400),
+                        const SizedBox(height: 12),
+                        Text(
+                          'No courses yet',
+                          style: TextStyle(color: Colors.grey.shade600),
+                        ),
+                      ],
+                    ),
+                  ),
+                )
+              else
+                ...courses.map((course) => _CourseCard(course: course)),
             ],
           );
         },
@@ -43,75 +109,169 @@ class AdminPanelScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildAddButton(
-      {required String label, required VoidCallback onTap}) {
-    return OutlinedButton.icon(
-      onPressed: onTap,
-      icon: const Icon(Icons.add, color: Color(0xFF6366F1)),
-      label: Text(label, style: const TextStyle(color: Color(0xFF6366F1))),
-      style: OutlinedButton.styleFrom(
-        side: const BorderSide(color: Color(0xFF6366F1)),
-        padding: const EdgeInsets.symmetric(vertical: 14),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      ),
-    );
-  }
-
   void _showCourseDialog(BuildContext context, {DocumentSnapshot? course}) {
-    final titleController =
-        TextEditingController(text: course?['title'] ?? '');
-    final descController =
-        TextEditingController(text: course?['description'] ?? '');
+    final titleController = TextEditingController(text: course?['title'] ?? '');
+    final descController = TextEditingController(text: course?['description'] ?? '');
+    String? selectedIcon = course?['icon'] ?? 'school';
+    int? selectedColor = course?['color'] ?? 0xFF6366F1;
 
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: Text(course == null ? 'New Course' : 'Edit Course'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(
-              controller: titleController,
-              decoration: const InputDecoration(labelText: 'Title'),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Text(course == null ? 'Create New Course' : 'Edit Course',
+            style: const TextStyle(fontWeight: FontWeight.bold)),
+        content: SingleChildScrollView(
+          child: StatefulBuilder(
+            builder: (context, setState) => Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                TextField(
+                  controller: titleController,
+                  decoration: InputDecoration(
+                    labelText: 'Course Title',
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                    prefixIcon: const Icon(Icons.title),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: descController,
+                  decoration: InputDecoration(
+                    labelText: 'Description',
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                    prefixIcon: const Icon(Icons.description),
+                  ),
+                  maxLines: 3,
+                ),
+                const SizedBox(height: 16),
+                Text('Select Icon', style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold)),
+                const SizedBox(height: 8),
+                Wrap(
+                  spacing: 8,
+                  children: [
+                    'school', 'code', 'data_usage', 'analytics', 'storage',
+                    'computer', 'cloud', 'auto_awesome', 'smart_toy', 'security'
+                  ].map((icon) {
+                    final isSelected = selectedIcon == icon;
+                    return GestureDetector(
+                      onTap: () => setState(() => selectedIcon = icon),
+                      child: Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          border: Border.all(
+                            color: isSelected ? const Color(0xFF6366F1) : Colors.grey,
+                            width: isSelected ? 2 : 1,
+                          ),
+                          borderRadius: BorderRadius.circular(12),
+                          color: isSelected ? const Color(0xFF6366F1).withOpacity(0.1) : Colors.transparent,
+                        ),
+                        child: Icon(_getIconFromName(icon), color: const Color(0xFF6366F1)),
+                      ),
+                    );
+                  }).toList(),
+                ),
+                const SizedBox(height: 16),
+                Text('Select Color', style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold)),
+                const SizedBox(height: 8),
+                Wrap(
+                  spacing: 8,
+                  children: [
+                    0xFF6366F1, 0xFF8B5CF6, 0xFF06B6D4, 0xFF10B981,
+                    0xFFF59E0B, 0xFFEC4899, 0xFF3B82F6, 0xFF14B8A6, 0xFFEF4444, 0xFF059669,
+                  ].map((color) {
+                    final isSelected = selectedColor == color;
+                    return GestureDetector(
+                      onTap: () => setState(() => selectedColor = color),
+                      child: Container(
+                        width: 44,
+                        height: 44,
+                        decoration: BoxDecoration(
+                          color: Color(color),
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color: isSelected ? Colors.black : Colors.transparent,
+                            width: isSelected ? 3 : 0,
+                          ),
+                        ),
+                        child: isSelected
+                            ? const Icon(Icons.check, color: Colors.white)
+                            : null,
+                      ),
+                    );
+                  }).toList(),
+                ),
+              ],
             ),
-            const SizedBox(height: 8),
-            TextField(
-              controller: descController,
-              decoration: const InputDecoration(labelText: 'Description'),
-              maxLines: 3,
-            ),
-          ],
+          ),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
+            child: const Text('Cancel', style: TextStyle(color: Colors.grey)),
           ),
-          ElevatedButton(
+          ElevatedButton.icon(
             onPressed: () async {
+              if (titleController.text.trim().isEmpty) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Please enter a course title')),
+                );
+                return;
+              }
               if (course == null) {
                 await AdminService().createCourse(
                   title: titleController.text.trim(),
                   description: descController.text.trim(),
+                  icon: selectedIcon,
+                  color: selectedColor,
                 );
               } else {
                 await AdminService().updateCourse(
                   courseId: course.id,
                   title: titleController.text.trim(),
                   description: descController.text.trim(),
+                  icon: selectedIcon,
+                  color: selectedColor,
                 );
               }
               if (context.mounted) Navigator.pop(context);
             },
+            icon: const Icon(Icons.check),
             style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF6366F1)),
-            child: Text(course == null ? 'Create' : 'Save',
-                style: const TextStyle(color: Colors.white)),
+              backgroundColor: const Color(0xFF6366F1),
+              foregroundColor: Colors.white,
+            ),
+            label: Text(course == null ? 'Create' : 'Save'),
           ),
         ],
       ),
     );
+  }
+
+  IconData _getIconFromName(String iconName) {
+    switch (iconName.toLowerCase()) {
+      case 'code':
+        return Icons.code;
+      case 'data_usage':
+        return Icons.data_usage;
+      case 'analytics':
+        return Icons.analytics;
+      case 'storage':
+        return Icons.storage;
+      case 'computer':
+        return Icons.computer;
+      case 'cloud':
+        return Icons.cloud;
+      case 'auto_awesome':
+        return Icons.auto_awesome;
+      case 'smart_toy':
+        return Icons.smart_toy;
+      case 'security':
+        return Icons.security;
+      default:
+        return Icons.school;
+    }
   }
 }
 
@@ -123,83 +283,283 @@ class _CourseCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final courseData = course.data() as Map<String, dynamic>;
+    final colorHex = courseData['color'] as int? ?? 0xFF6366F1;
+    final iconName = courseData['icon'] as String? ?? 'school';
+    
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      child: ExpansionTile(
-        tilePadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        title: Text(course['title'],
-            style: const TextStyle(fontWeight: FontWeight.bold)),
-        subtitle: Text(course['description'] ?? '',
-            maxLines: 1, overflow: TextOverflow.ellipsis),
-        trailing: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            IconButton(
-              icon: const Icon(Icons.edit, color: Color(0xFF6366F1)),
-              onPressed: () => _showCourseDialog(context, course: course),
-            ),
-            IconButton(
-              icon: Icon(Icons.delete, color: Colors.red.shade400),
-              onPressed: () => _confirmDelete(
-                context,
-                label: course['title'],
-                onConfirm: () => AdminService().deleteCourse(course.id),
-              ),
-            ),
-          ],
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(16),
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              Color(colorHex).withOpacity(0.8),
+              Color(colorHex).withOpacity(0.5),
+            ],
+          ),
         ),
-        children: [_SectionList(courseId: course.id)],
+        child: Theme(
+          data: Theme.of(context).copyWith(
+            splashColor: Colors.transparent,
+            highlightColor: Colors.transparent,
+          ),
+          child: ExpansionTile(
+            tilePadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            collapsedIconColor: Colors.white,
+            iconColor: Colors.white,
+            title: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.2),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Icon(_getIconFromName(iconName), color: Colors.white, size: 24),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        courseData['title'] ?? '',
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                          fontSize: 16,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        courseData['description'] ?? '',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          color: Colors.white.withOpacity(0.8),
+                          fontSize: 12,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            trailing: PopupMenuButton(
+              color: Colors.white,
+              itemBuilder: (context) => [
+                PopupMenuItem(
+                  child: const Text('Edit'),
+                  onTap: () => Future.delayed(
+                    Duration.zero,
+                    () => _showCourseDialog(context, course: course),
+                  ),
+                ),
+                PopupMenuItem(
+                  child: const Text('Delete', style: TextStyle(color: Colors.red)),
+                  onTap: () => _confirmDelete(context, course),
+                ),
+              ],
+            ),
+            children: [_SectionList(courseId: course.id)],
+          ),
+        ),
       ),
     );
   }
 
   void _showCourseDialog(BuildContext context, {DocumentSnapshot? course}) {
-    final titleController =
-        TextEditingController(text: course?['title'] ?? '');
-    final descController =
-        TextEditingController(text: course?['description'] ?? '');
+    final titleController = TextEditingController(text: course?['title'] ?? '');
+    final descController = TextEditingController(text: course?['description'] ?? '');
+    String? selectedIcon = course?['icon'] ?? 'school';
+    int? selectedColor = course?['color'] ?? 0xFF6366F1;
 
     showDialog(
       context: context,
-      builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: Text(course == null ? 'New Course' : 'Edit Course'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(
-                controller: titleController,
-                decoration: const InputDecoration(labelText: 'Title')),
-            const SizedBox(height: 8),
-            TextField(
-              controller: descController,
-              decoration: const InputDecoration(labelText: 'Description'),
-              maxLines: 3,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Text(course == null ? 'Create New Course' : 'Edit Course',
+            style: const TextStyle(fontWeight: FontWeight.bold)),
+        content: SingleChildScrollView(
+          child: StatefulBuilder(
+            builder: (context, setState) => Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                TextField(
+                  controller: titleController,
+                  decoration: InputDecoration(
+                    labelText: 'Course Title',
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                    prefixIcon: const Icon(Icons.title),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: descController,
+                  decoration: InputDecoration(
+                    labelText: 'Description',
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                    prefixIcon: const Icon(Icons.description),
+                  ),
+                  maxLines: 3,
+                ),
+                const SizedBox(height: 16),
+                Text('Select Icon', style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold)),
+                const SizedBox(height: 8),
+                Wrap(
+                  spacing: 8,
+                  children: [
+                    'school', 'code', 'data_usage', 'analytics', 'storage',
+                    'computer', 'cloud', 'auto_awesome', 'smart_toy', 'security'
+                  ].map((icon) {
+                    final isSelected = selectedIcon == icon;
+                    return GestureDetector(
+                      onTap: () => setState(() => selectedIcon = icon),
+                      child: Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          border: Border.all(
+                            color: isSelected ? const Color(0xFF6366F1) : Colors.grey,
+                            width: isSelected ? 2 : 1,
+                          ),
+                          borderRadius: BorderRadius.circular(12),
+                          color: isSelected ? const Color(0xFF6366F1).withOpacity(0.1) : Colors.transparent,
+                        ),
+                        child: Icon(_getIconFromName(icon), color: const Color(0xFF6366F1)),
+                      ),
+                    );
+                  }).toList(),
+                ),
+                const SizedBox(height: 16),
+                Text('Select Color', style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold)),
+                const SizedBox(height: 8),
+                Wrap(
+                  spacing: 8,
+                  children: [
+                    0xFF6366F1, 0xFF8B5CF6, 0xFF06B6D4, 0xFF10B981,
+                    0xFFF59E0B, 0xFFEC4899, 0xFF3B82F6, 0xFF14B8A6, 0xFFEF4444, 0xFF059669,
+                  ].map((color) {
+                    final isSelected = selectedColor == color;
+                    return GestureDetector(
+                      onTap: () => setState(() => selectedColor = color),
+                      child: Container(
+                        width: 44,
+                        height: 44,
+                        decoration: BoxDecoration(
+                          color: Color(color),
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color: isSelected ? Colors.black : Colors.transparent,
+                            width: isSelected ? 3 : 0,
+                          ),
+                        ),
+                        child: isSelected
+                            ? const Icon(Icons.check, color: Colors.white)
+                            : null,
+                      ),
+                    );
+                  }).toList(),
+                ),
+              ],
             ),
-          ],
+          ),
         ),
         actions: [
           TextButton(
-              onPressed: () => Navigator.pop(ctx),
-              child: const Text('Cancel')),
-          ElevatedButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel', style: TextStyle(color: Colors.grey)),
+          ),
+          ElevatedButton.icon(
             onPressed: () async {
-              await AdminService().updateCourse(
-                courseId: course!.id,
-                title: titleController.text.trim(),
-                description: descController.text.trim(),
-              );
-              if (ctx.mounted) Navigator.pop(ctx);
+              if (titleController.text.trim().isEmpty) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Please enter a course title')),
+                );
+                return;
+              }
+              if (course == null) {
+                await AdminService().createCourse(
+                  title: titleController.text.trim(),
+                  description: descController.text.trim(),
+                  icon: selectedIcon,
+                  color: selectedColor,
+                );
+              } else {
+                await AdminService().updateCourse(
+                  courseId: course.id,
+                  title: titleController.text.trim(),
+                  description: descController.text.trim(),
+                  icon: selectedIcon,
+                  color: selectedColor,
+                );
+              }
+              if (context.mounted) Navigator.pop(context);
             },
+            icon: const Icon(Icons.check),
             style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF6366F1)),
-            child:
-                const Text('Save', style: TextStyle(color: Colors.white)),
+              backgroundColor: const Color(0xFF6366F1),
+              foregroundColor: Colors.white,
+            ),
+            label: Text(course == null ? 'Create' : 'Save'),
           ),
         ],
       ),
     );
+  }
+
+  void _confirmDelete(BuildContext context, DocumentSnapshot course) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Text('Delete Course', style: TextStyle(fontWeight: FontWeight.bold)),
+        content: Text('Are you sure you want to delete "${course['title']}"? This cannot be undone.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              await AdminService().deleteCourse(course.id);
+              if (ctx.mounted) Navigator.pop(ctx);
+            },
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            child: const Text('Delete', style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  IconData _getIconFromName(String iconName) {
+    switch (iconName.toLowerCase()) {
+      case 'code':
+        return Icons.code;
+      case 'data_usage':
+        return Icons.data_usage;
+      case 'analytics':
+        return Icons.analytics;
+      case 'storage':
+        return Icons.storage;
+      case 'computer':
+        return Icons.computer;
+      case 'cloud':
+        return Icons.cloud;
+      case 'auto_awesome':
+        return Icons.auto_awesome;
+      case 'smart_toy':
+        return Icons.smart_toy;
+      case 'security':
+        return Icons.security;
+      default:
+        return Icons.school;
+    }
   }
 }
 
@@ -550,7 +910,8 @@ class _LessonCardState extends State<_LessonCard> {
     );
   }
 
-  Future<void> _uploadFile({required bool isPdf}) async {  // 👈 replace FROM here
+  Future<void> _uploadFile({required bool isPdf}) async {
+  try {
     final completer = Completer<html.File?>();
 
     final input = html.FileUploadInputElement();
@@ -576,7 +937,7 @@ class _LessonCardState extends State<_LessonCard> {
 
     if (isPdf) {
       setState(() => _pdfProgress = 0);
-      await AdminService().uploadPdf(
+      final result = await AdminService().uploadPdf(
         courseId: widget.courseId,
         sectionId: widget.sectionId,
         lessonId: widget.lesson.id,
@@ -585,9 +946,19 @@ class _LessonCardState extends State<_LessonCard> {
         onProgress: (p) => setState(() => _pdfProgress = p),
       );
       setState(() => _pdfProgress = null);
+
+      // 👇 Show result
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(result == 'Success' ? '✅ PDF uploaded!' : '❌ $result'),
+            backgroundColor: result == 'Success' ? Colors.green : Colors.red,
+          ),
+        );
+      }
     } else {
       setState(() => _videoProgress = 0);
-      await AdminService().uploadVideo(
+      final result = await AdminService().uploadVideo(
         courseId: widget.courseId,
         sectionId: widget.sectionId,
         lessonId: widget.lesson.id,
@@ -596,8 +967,34 @@ class _LessonCardState extends State<_LessonCard> {
         onProgress: (p) => setState(() => _videoProgress = p),
       );
       setState(() => _videoProgress = null);
+
+      // 👇 Show result
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(result == 'Success' ? '✅ Video uploaded!' : '❌ $result'),
+            backgroundColor: result == 'Success' ? Colors.green : Colors.red,
+          ),
+        );
+      }
+    }
+  } catch (e) {
+    setState(() {
+      _pdfProgress = null;
+      _videoProgress = null;
+    });
+    // 👇 Show the actual error
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('❌ Error: $e'),
+          backgroundColor: Colors.red,
+          duration: const Duration(seconds: 8), // long enough to read
+        ),
+      );
     }
   }
+}
 
   void _showEditDialog(BuildContext context) {
     final data = widget.lesson.data() as Map<String, dynamic>;

@@ -22,11 +22,15 @@ class AdminService {
   Future<String> createCourse({
     required String title,
     required String description,
+    String? icon,
+    int? color,
   }) async {
     try {
       await _firestore.collection('courses').add({
         'title': title,
         'description': description,
+        'icon': icon ?? 'school',
+        'color': color ?? 0xFF6366F1,
         'createdAt': Timestamp.now(),
       });
       return 'Success';
@@ -39,12 +43,18 @@ class AdminService {
     required String courseId,
     required String title,
     required String description,
+    String? icon,
+    int? color,
   }) async {
     try {
-      await _firestore.collection('courses').doc(courseId).update({
+      final updateData = {
         'title': title,
         'description': description,
-      });
+      };
+      if (icon != null) updateData['icon'] = icon;
+      if (color != null) updateData['color'] = color as String;
+      
+      await _firestore.collection('courses').doc(courseId).update(updateData);
       return 'Success';
     } catch (e) {
       return 'Failed to update course';
@@ -212,20 +222,28 @@ class AdminService {
   }) async {
     try {
       final ref = _storage
-          .ref('courses/$courseId/$sectionId/$lessonId/pdf/$fileName');
+          .ref('courses/$courseId/sections/$sectionId/$lessonId/pdf/$fileName');
+      
       final uploadTask = ref.putData(
         fileBytes,
         SettableMetadata(contentType: 'application/pdf'),
       );
 
+      // Listen to progress updates
       uploadTask.snapshotEvents.listen((snapshot) {
-        final progress = snapshot.bytesTransferred / snapshot.totalBytes;
-        onProgress?.call(progress);
+        if (onProgress != null) {
+          final progress = snapshot.bytesTransferred / snapshot.totalBytes;
+          onProgress(progress);
+        }
       });
 
+      // Wait for upload to complete
       await uploadTask;
+      
+      // Get download URL
       final url = await ref.getDownloadURL();
 
+      // Update Firestore with the PDF URL
       await _firestore
           .collection('courses/$courseId/sections/$sectionId/lessons')
           .doc(lessonId)
@@ -233,7 +251,8 @@ class AdminService {
 
       return 'Success';
     } catch (e) {
-      return 'Failed to upload PDF';
+      print('PDF Upload Error: $e');
+      return 'Failed to upload PDF: ${e.toString()}';
     }
   }
 
@@ -247,20 +266,28 @@ class AdminService {
   }) async {
     try {
       final ref = _storage
-          .ref('courses/$courseId/$sectionId/$lessonId/video/$fileName');
+          .ref('courses/$courseId/sections/$sectionId/$lessonId/video/$fileName');
+      
       final uploadTask = ref.putData(
         fileBytes,
         SettableMetadata(contentType: 'video/mp4'),
       );
 
+      // Listen to progress updates
       uploadTask.snapshotEvents.listen((snapshot) {
-        final progress = snapshot.bytesTransferred / snapshot.totalBytes;
-        onProgress?.call(progress);
+        if (onProgress != null) {
+          final progress = snapshot.bytesTransferred / snapshot.totalBytes;
+          onProgress(progress);
+        }
       });
 
+      // Wait for upload to complete
       await uploadTask;
+      
+      // Get download URL
       final url = await ref.getDownloadURL();
 
+      // Update Firestore with the video URL
       await _firestore
           .collection('courses/$courseId/sections/$sectionId/lessons')
           .doc(lessonId)
@@ -268,7 +295,8 @@ class AdminService {
 
       return 'Success';
     } catch (e) {
-      return 'Failed to upload video';
+      print('Video Upload Error: $e');
+      return 'Failed to upload video: ${e.toString()}';
     }
   }
 }

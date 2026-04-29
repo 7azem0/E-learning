@@ -1,59 +1,12 @@
 // ignore_for_file: deprecated_member_use
 
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import '../widgets/menu.dart';
 import './sessions_screen.dart';
 
 class CoursesScreen extends StatelessWidget {
   const CoursesScreen({super.key});
-
-  final List<CourseModel> courses = const [
-    CourseModel(
-      name: "Programming",
-      icon: Icons.code,
-      color: Color(0xFF6366F1),
-    ),
-    CourseModel(
-      name: "Data Structures",
-      icon: Icons.data_usage,
-      color: Color(0xFF8B5CF6),
-    ),
-    CourseModel(
-      name: "Algorithms",
-      icon: Icons.analytics,
-      color: Color(0xFF06B6D4),
-    ),
-    CourseModel(
-      name: "Database Systems",
-      icon: Icons.storage,
-      color: Color(0xFF10B981),
-    ),
-    CourseModel(
-      name: "Operating Systems",
-      icon: Icons.computer,
-      color: Color(0xFFF59E0B),
-    ),
-    CourseModel(
-      name: "Computer Networks",
-      icon: Icons.cloud,
-      color: Color(0xFFEC4899),
-    ),
-    CourseModel(
-      name: "Artificial Intelligence",
-      icon: Icons.auto_awesome,
-      color: Color(0xFF3B82F6),
-    ),
-    CourseModel(
-      name: "Machine Learning",
-      icon: Icons.smart_toy,
-      color: Color(0xFF14B8A6),
-    ),
-    CourseModel(
-      name: "Cybersecurity",
-      icon: Icons.security,
-      color: Color(0xFFEF4444),
-    ),
-  ];
 
   @override
   Widget build(BuildContext context) {
@@ -65,24 +18,56 @@ class CoursesScreen extends StatelessWidget {
       drawer: const Menu(),
       body: Padding(
         padding: const EdgeInsets.all(16),
-        child: GridView.builder(
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 2,
-            mainAxisSpacing: 16,
-            crossAxisSpacing: 16,
-            childAspectRatio: 0.85,
-          ),
-          itemCount: courses.length,
-          itemBuilder: (context, index) {
-            final course = courses[index];
-            return ModernCourseCard(
-              course: course,
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => SessionsScreen(courseName: course.name),
-                  ),
+        child: StreamBuilder<QuerySnapshot>(
+          stream: FirebaseFirestore.instance
+              .collection('courses')
+              .orderBy('createdAt', descending: true)
+              .snapshots(),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(child: CircularProgressIndicator());
+            }
+
+            if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+              return Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.school_outlined, size: 64, color: Colors.grey.shade400),
+                    const SizedBox(height: 16),
+                    Text(
+                      'No courses available yet',
+                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                            color: Colors.grey.shade600,
+                          ),
+                    ),
+                  ],
+                ),
+              );
+            }
+
+            final courses = snapshot.data!.docs;
+            return GridView.builder(
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 2,
+                mainAxisSpacing: 16,
+                crossAxisSpacing: 16,
+                childAspectRatio: 0.85,
+              ),
+              itemCount: courses.length,
+              itemBuilder: (context, index) {
+                final courseDoc = courses[index];
+                final course = CourseModel.fromFirestore(courseDoc);
+                return ModernCourseCard(
+                  course: course,
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => SessionsScreen(courseName: course.name),
+                      ),
+                    );
+                  },
                 );
               },
             );
@@ -94,15 +79,66 @@ class CoursesScreen extends StatelessWidget {
 }
 
 class CourseModel {
+  final String id;
   final String name;
+  final String description;
   final IconData icon;
   final Color color;
+  final DateTime? createdAt;
 
   const CourseModel({
+    required this.id,
     required this.name,
+    required this.description,
     required this.icon,
     required this.color,
+    this.createdAt,
   });
+
+  factory CourseModel.fromFirestore(DocumentSnapshot doc) {
+    final data = doc.data() as Map<String, dynamic>;
+    
+    // Map icon names to IconData
+    final iconName = data['icon'] as String?;
+    final icon = _getIconFromName(iconName);
+    
+    // Map color hex to Color
+    final colorHex = data['color'] as int? ?? 0xFF6366F1;
+    
+    return CourseModel(
+      id: doc.id,
+      name: data['title'] ?? '',
+      description: data['description'] ?? '',
+      icon: icon,
+      color: Color(colorHex),
+      createdAt: (data['createdAt'] as Timestamp?)?.toDate(),
+    );
+  }
+
+  static IconData _getIconFromName(String? iconName) {
+    switch (iconName?.toLowerCase()) {
+      case 'code':
+        return Icons.code;
+      case 'data_usage':
+        return Icons.data_usage;
+      case 'analytics':
+        return Icons.analytics;
+      case 'storage':
+        return Icons.storage;
+      case 'computer':
+        return Icons.computer;
+      case 'cloud':
+        return Icons.cloud;
+      case 'auto_awesome':
+        return Icons.auto_awesome;
+      case 'smart_toy':
+        return Icons.smart_toy;
+      case 'security':
+        return Icons.security;
+      default:
+        return Icons.school;
+    }
+  }
 }
 
 class ModernCourseCard extends StatefulWidget {
