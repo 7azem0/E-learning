@@ -1,9 +1,9 @@
 // ignore_for_file: deprecated_member_use
 
+import 'package:e_learning/screens/course_detail_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../widgets/menu.dart';
-import './sessions_screen.dart';
 
 class CoursesScreen extends StatelessWidget {
   const CoursesScreen({super.key});
@@ -64,7 +64,11 @@ class CoursesScreen extends StatelessWidget {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (_) => SessionsScreen(courseName: course.name),
+                        builder: (_) => CourseDetailScreen(
+                          courseId: course.id,
+                          courseName: course.name,
+                          courseColor: course.color,
+                        ),
                       ),
                     );
                   },
