@@ -170,7 +170,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                       setState(() => _isLoading = true);
                                       String result = await AuthService().loginUser(
                                         email: emailController.text.trim(),
-                                        password: passwordController.text.trim(),
+                                        password: passwordController.text.trim(), 
                                       );
                                       setState(() => _isLoading = false);
 

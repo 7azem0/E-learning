@@ -15,7 +15,7 @@ class HomeScreen extends StatelessWidget {
         elevation: 0,
         title: const Text("EduHub", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24)),
       ),
-      drawer:  Menu(),
+      drawer: Menu(),
       body: ListView(
         children: [
           // Hero Section with Gradient
