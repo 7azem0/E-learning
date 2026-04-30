@@ -3,6 +3,7 @@
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'dart:typed_data';
+import '../global_state.dart';
 
 class User {
   final String uid;
@@ -51,7 +52,8 @@ class AuthService {
   factory AuthService() => _instance;
   AuthService._internal();
 
-  final firebase_auth.FirebaseAuth _firebaseAuth = firebase_auth.FirebaseAuth.instance;
+  final firebase_auth.FirebaseAuth _firebaseAuth =
+      firebase_auth.FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   User? _currentUser;
 
@@ -60,7 +62,8 @@ class AuthService {
   bool get isLoggedIn => firebaseUser != null;
 
   /// Listen to authentication state changes
-  Stream<firebase_auth.User?> get authStateChanges => _firebaseAuth.authStateChanges();
+  Stream<firebase_auth.User?> get authStateChanges =>
+      _firebaseAuth.authStateChanges();
 
   /// Initialize and load current user
   Future<void> initialize() async {
@@ -102,9 +105,13 @@ class AuthService {
         createdAt: DateTime.now(),
       );
 
-      await _firestore.collection('users').doc(userCredential.user!.uid).set(newUser.toFirestore());
+      await _firestore
+          .collection('users')
+          .doc(userCredential.user!.uid)
+          .set(newUser.toFirestore());
 
       _currentUser = newUser;
+      roleNotifier.value = 'student';
       return 'Success';
     } on firebase_auth.FirebaseAuthException catch (e) {
       if (e.code == 'email-already-in-use') {
@@ -130,6 +137,7 @@ class AuthService {
       );
 
       await _loadUserData(userCredential.user!.uid);
+      roleNotifier.value = _currentUser?.isAdmin == true ? 'admin' : 'student';
       return 'Success';
     } on firebase_auth.FirebaseAuthException catch (e) {
       if (e.code == 'user-not-found') {
@@ -147,7 +155,8 @@ class AuthService {
   Future<String> updateCurrentUser({
     required String name,
     required String email,
-    String? avatarUrl, Uint8List? avatar,
+    String? avatarUrl,
+    Uint8List? avatar,
   }) async {
     try {
       if (firebaseUser == null) return 'No logged-in user';
@@ -166,7 +175,10 @@ class AuthService {
         createdAt: _currentUser?.createdAt ?? DateTime.now(),
       );
 
-      await _firestore.collection('users').doc(firebaseUser!.uid).update(updatedUser.toFirestore());
+      await _firestore
+          .collection('users')
+          .doc(firebaseUser!.uid)
+          .update(updatedUser.toFirestore());
       _currentUser = updatedUser;
       return 'Success';
     } catch (e) {
@@ -178,6 +190,7 @@ class AuthService {
   Future<void> logout() async {
     await _firebaseAuth.signOut();
     _currentUser = null;
+    roleNotifier.value = '';
   }
 
   /// Reset password
