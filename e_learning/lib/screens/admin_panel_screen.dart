@@ -3,7 +3,7 @@
 import 'dart:async';
 import 'dart:html' as html;
 import 'dart:typed_data';
-
+import '../services/quiz_service.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../services/admin_service.dart';
@@ -1106,6 +1106,8 @@ class _LessonCard extends StatefulWidget {
 class _LessonCardState extends State<_LessonCard> {
   double? _pdfProgress;
   double? _videoProgress;
+  bool _generatingQuiz = false;
+  String _quizStatus = '';
 
   @override
   Widget build(BuildContext context) {
@@ -1158,6 +1160,7 @@ class _LessonCardState extends State<_LessonCard> {
               ),
 
             // File upload buttons
+            // File upload buttons
             const SizedBox(height: 4),
             Row(
               children: [
@@ -1178,6 +1181,70 @@ class _LessonCardState extends State<_LessonCard> {
                 ),
               ],
             ),
+
+            // 👇 AI Quiz Generation
+            const SizedBox(height: 8),
+            const Divider(height: 1),
+            const SizedBox(height: 4),
+            if (_generatingQuiz)
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 6),
+                child: Row(
+                  children: [
+                    const SizedBox(
+                      width: 16, height: 16,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: Color(0xFF6366F1),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      _quizStatus,
+                      style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+                    ),
+                  ],
+                ),
+              )
+            else
+              GestureDetector(
+                onTap: hasPdf ? () => _generateQuiz(data) : null,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                  decoration: BoxDecoration(
+                    border: Border.all(
+                      color: hasPdf
+                          ? const Color(0xFF8B5CF6)
+                          : Colors.grey.shade300,
+                    ),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Icons.auto_awesome,
+                        size: 14,
+                        color: hasPdf
+                            ? const Color(0xFF8B5CF6)
+                            : Colors.grey.shade400,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        hasPdf
+                            ? 'Generate Quiz with AI'
+                            : 'Upload PDF to generate quiz',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: hasPdf
+                              ? const Color(0xFF8B5CF6)
+                              : Colors.grey.shade400,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
           ],
         ),
       ),
@@ -1267,6 +1334,34 @@ class _LessonCardState extends State<_LessonCard> {
         ),
       );
     }
+  }
+}
+Future<void> _generateQuiz(Map<String, dynamic> data) async {
+  setState(() {
+    _generatingQuiz = true;
+    _quizStatus = 'Starting...';
+  });
+
+  final result = await QuizService().generateQuizFromLesson(
+    lessonTitle: data['title'],
+    pdfUrl: data['pdfUrl'],
+    courseId: widget.courseId,
+    onStatus: (status) => setState(() => _quizStatus = status),
+  );
+
+  setState(() => _generatingQuiz = false);
+
+  if (mounted) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          result == 'Success'
+              ? '✅ Quiz generated and saved!'
+              : '❌ $result',
+        ),
+        backgroundColor: result == 'Success' ? Colors.green : Colors.red,
+      ),
+    );
   }
 }
 

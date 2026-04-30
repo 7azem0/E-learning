@@ -97,7 +97,7 @@ class Menu extends StatelessWidget {
               if (role == 'admin')
                 _DrawerMenuItem(
                   icon: Icons.admin_panel_settings_outlined,
-                  label: "Admin Panel",
+                  label: "Instructor Panel",
                   onTap: () {
                     Navigator.pop(context);
                     Navigator.pushNamed(context, '/admin');
