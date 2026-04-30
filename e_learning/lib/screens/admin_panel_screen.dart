@@ -15,7 +15,7 @@ class AdminPanelScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Admin Panel', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24)),
+        title: const Text('Instructor Panel', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24)),
         backgroundColor: const Color(0xFF6366F1),
         foregroundColor: Colors.white,
         elevation: 0,
@@ -57,8 +57,8 @@ class AdminPanelScreen extends StatelessWidget {
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: const [
-                          Icon(Icons.add_circle_outline, color: Colors.white, size: 24),
-                          SizedBox(width: 12),
+                          Icon(Icons.add, color: Colors.white),
+                          SizedBox(width: 8),
                           Text(
                             'Add New Course',
                             style: TextStyle(
@@ -70,8 +70,99 @@ class AdminPanelScreen extends StatelessWidget {
                         ],
                       ),
                     ),
+                    
                   ),
                 ),
+              ),
+              const SizedBox(height: 16),
+              Container(
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [Color(0xFF6366F1), Color(0xFF8B5CF6)],
+                  ),
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: [
+                    BoxShadow(
+                      color: const Color(0xFF6366F1).withOpacity(0.3),
+                      blurRadius: 15,
+                      offset: const Offset(0, 8),
+                    ),
+                  ],
+                ),
+                child: Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    onTap: () => _showQuizDialog(context, courses: courses),
+                    borderRadius: BorderRadius.circular(16),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: const [
+                          Icon(Icons.add, color: Colors.white),
+                          SizedBox(width: 8),
+                          Text(
+                            'Create Quiz',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 18,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    
+                  ),
+                ),
+                
+              ),
+               const SizedBox(height: 16),
+              Container(
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [Color(0xFF6366F1), Color(0xFF8B5CF6)],
+                  ),
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: [
+                    BoxShadow(
+                      color: const Color(0xFF6366F1).withOpacity(0.3),
+                      blurRadius: 15,
+                      offset: const Offset(0, 8),
+                    ),
+                  ],
+                ),
+                child: Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    onTap: () => _showCourseDialog(context),
+                    borderRadius: BorderRadius.circular(16),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: const [
+                          Icon(Icons.add, color: Colors.white),
+                          SizedBox(width: 8),
+                          Text(
+                            'Broadcast an Announcement',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 18,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    
+                  ),
+                ),
+                
               ),
               const SizedBox(height: 24),
 
@@ -102,6 +193,92 @@ class AdminPanelScreen extends StatelessWidget {
                 )
               else
                 ...courses.map((course) => _CourseCard(course: course)),
+              const SizedBox(height: 24),
+              Text(
+                'Manage Quizzes',
+                style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 12),
+              StreamBuilder<QuerySnapshot>(
+                stream: AdminService().getQuizzes(),
+                builder: (context, quizSnapshot) {
+                  if (quizSnapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
+                  final quizzes = quizSnapshot.data?.docs ?? [];
+                  if (quizzes.isEmpty) {
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 20),
+                      child: Center(
+                        child: Text(
+                          'No quizzes yet',
+                          style: TextStyle(color: Colors.grey.shade600),
+                        ),
+                      ),
+                    );
+                  }
+
+                  return Column(
+                    children: quizzes.map((quiz) {
+                      final quizData = quiz.data() as Map<String, dynamic>;
+                      String courseTitle = 'Unassigned';
+                      for (final course in courses) {
+                        if (course.id == quizData['courseId']) {
+                          courseTitle = course['title'] ?? 'Unassigned';
+                          break;
+                        }
+                      }
+                      return Card(
+                        margin: const EdgeInsets.only(bottom: 12),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                        child: ListTile(
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                          title: Text(quizData['title'] ?? ''),
+                          subtitle: Text(courseTitle),
+                          trailing: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text('${quizData['questionCount'] ?? 10} Qs'),
+                              IconButton(
+                                icon: const Icon(Icons.delete, color: Colors.redAccent),
+                                onPressed: () async {
+                                  final confirmed = await showDialog<bool>(
+                                    context: context,
+                                    builder: (context) => AlertDialog(
+                                      title: const Text('Delete Quiz'),
+                                      content: const Text('Are you sure you want to delete this quiz and its questions?'),
+                                      actions: [
+                                        TextButton(
+                                          onPressed: () => Navigator.pop(context, false),
+                                          child: const Text('Cancel'),
+                                        ),
+                                        TextButton(
+                                          onPressed: () => Navigator.pop(context, true),
+                                          child: const Text('Delete', style: TextStyle(color: Colors.red)),
+                                        ),
+                                      ],
+                                    ),
+                                  );
+                                  if (confirmed == true) {
+                                    final result = await AdminService().deleteQuiz(quiz.id);
+                                    if (context.mounted) {
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        SnackBar(content: Text(result == 'Success' ? 'Quiz deleted' : 'Failed to delete quiz')),
+                                      );
+                                    }
+                                  }
+                                },
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    }).toList(),
+                  );
+                },
+              ),
             ],
           );
         },
@@ -243,6 +420,103 @@ class AdminPanelScreen extends StatelessWidget {
               foregroundColor: Colors.white,
             ),
             label: Text(course == null ? 'Create' : 'Save'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showQuizDialog(BuildContext context, {List<QueryDocumentSnapshot>? courses}) {
+    final titleController = TextEditingController();
+    final descController = TextEditingController();
+    String? selectedCourseId = courses != null && courses.isNotEmpty ? courses.first.id : null;
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Text('Create New Quiz', style: TextStyle(fontWeight: FontWeight.bold)),
+        content: SingleChildScrollView(
+          child: StatefulBuilder(
+            builder: (context, setState) => Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                TextField(
+                  controller: titleController,
+                  decoration: InputDecoration(
+                    labelText: 'Quiz Title',
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                    prefixIcon: const Icon(Icons.quiz),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: descController,
+                  decoration: InputDecoration(
+                    labelText: 'Description',
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                    prefixIcon: const Icon(Icons.description),
+                  ),
+                  maxLines: 3,
+                ),
+                const SizedBox(height: 12),
+                const Text(
+                  'A default set of 10 auto-graded MCQs will be created for this quiz.',
+                  style: TextStyle(fontSize: 12, color: Colors.grey),
+                ),
+                const SizedBox(height: 16),
+                if (courses != null && courses.isNotEmpty) ...[
+                  const SizedBox(height: 16),
+                  Text('Attach to Course', style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 8),
+                  DropdownButtonFormField<String>(
+                    value: selectedCourseId,
+                    decoration: InputDecoration(
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                    ),
+                    items: courses.map((course) => DropdownMenuItem(
+                      value: course.id,
+                      child: Text(course['title'] ?? 'Untitled Course'),
+                    )).toList(),
+                    onChanged: (value) => setState(() => selectedCourseId = value),
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel', style: TextStyle(color: Colors.grey)),
+          ),
+          ElevatedButton.icon(
+            onPressed: () async {
+              if (titleController.text.trim().isEmpty) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Please enter a quiz title')),
+                );
+                return;
+              }
+              final result = await AdminService().createQuiz(
+                title: titleController.text.trim(),
+                description: descController.text.trim(),
+                courseId: selectedCourseId,
+              );
+              if (context.mounted) {
+                Navigator.pop(context);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text(result == 'Success' ? 'Quiz created successfully' : 'Failed to create quiz')),
+                );
+              }
+            },
+            icon: const Icon(Icons.check),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF6366F1),
+              foregroundColor: Colors.white,
+            ),
+            label: const Text('Create'),
           ),
         ],
       ),

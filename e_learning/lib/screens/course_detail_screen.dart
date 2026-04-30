@@ -38,32 +38,40 @@ class CourseDetailScreen extends StatelessWidget {
 
           final sections = snapshot.data?.docs ?? [];
 
-          if (sections.isEmpty) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.folder_open_outlined,
-                      size: 64, color: Colors.grey.shade400),
-                  const SizedBox(height: 16),
-                  Text('No sections yet',
-                      style: TextStyle(color: Colors.grey.shade600)),
-                ],
-              ),
-            );
-          }
-
-          return ListView.builder(
+          return ListView(
             padding: const EdgeInsets.all(16),
-            itemCount: sections.length,
-            itemBuilder: (context, index) {
-              final section = sections[index];
-              return _SectionTile(
-                courseId: courseId,
-                section: section,
-                courseColor: courseColor,
-              );
-            },
+            children: [
+              _CourseQuizSection(courseId: courseId, courseColor: courseColor),
+              const SizedBox(height: 24),
+              Text(
+                'Course Content',
+                style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+              ),
+              const SizedBox(height: 12),
+              if (sections.isEmpty)
+                Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.folder_open_outlined,
+                          size: 64, color: Colors.grey.shade400),
+                      const SizedBox(height: 16),
+                      Text('No sections yet',
+                          style: TextStyle(color: Colors.grey.shade600)),
+                    ],
+                  ),
+                )
+              else
+                ...sections.map((section) {
+                  return _SectionTile(
+                    courseId: courseId,
+                    section: section,
+                    courseColor: courseColor,
+                  );
+                }).toList(),
+            ],
           );
         },
       ),
@@ -201,6 +209,66 @@ class _LessonList extends StatelessWidget {
               },
             );
           }).toList(),
+        );
+      },
+    );
+  }
+}
+
+class _CourseQuizSection extends StatelessWidget {
+  final String courseId;
+  final Color courseColor;
+
+  const _CourseQuizSection({
+    required this.courseId,
+    required this.courseColor,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return StreamBuilder<QuerySnapshot>(
+      stream: FirebaseFirestore.instance
+          .collection('quizzes')
+          .where('courseId', isEqualTo: courseId)
+          .snapshots(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        }
+
+        final quizzes = snapshot.data?.docs ?? [];
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Quizzes',
+              style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+            ),
+            const SizedBox(height: 12),
+            if (quizzes.isEmpty)
+              Text('No quizzes have been created for this course yet.',
+                  style: TextStyle(color: Colors.grey.shade600))
+            else
+              ...quizzes.map((quiz) {
+                final quizData = quiz.data() as Map<String, dynamic>;
+                return Card(
+                  margin: const EdgeInsets.only(bottom: 12),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                  child: ListTile(
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    leading: CircleAvatar(
+                      backgroundColor: courseColor.withOpacity(0.1),
+                      child: Icon(Icons.quiz, color: courseColor),
+                    ),
+                    title: Text(quizData['title'] ?? ''),
+                    subtitle: Text('${quizData['questionCount'] ?? 10} auto MCQs'),
+                    trailing: const Icon(Icons.chevron_right, color: Colors.grey),
+                  ),
+                );
+              }).toList(),
+          ],
         );
       },
     );

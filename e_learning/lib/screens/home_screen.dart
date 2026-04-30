@@ -82,57 +82,8 @@ class HomeScreen extends StatelessWidget {
                 // Header
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      "Popular Courses",
-                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                            fontWeight: FontWeight.bold,
-                          ),
-                    ),
-                    GestureDetector(
-                      onTap: () {
-                        Navigator.pushNamed(context, '/courses');
-                      },
-                      child: Text(
-                        "View All",
-                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              color: const Color(0xFF6366F1),
-                              fontWeight: FontWeight.w500,
-                            ),
-                      ),
-                    ),
-                  ],
                 ),
                 const SizedBox(height: 16),
-
-                // Course Cards
-                const CourseCardItem(
-                  icon: Icons.code,
-                  title: "Programming",
-                  description: "Learn to code",
-                  color: Color(0xFF6366F1),
-                ),
-                const SizedBox(height: 12),
-                const CourseCardItem(
-                  icon: Icons.data_usage,
-                  title: "Data Structures",
-                  description: "Master DSA",
-                  color: Color(0xFF8B5CF6),
-                ),
-                const SizedBox(height: 12),
-                CourseCardItem(
-                  title: "Algorithms",   // ✅ REQUIRED
-                  icon: Icons.psychology, // also fixed icon
-                  description: "Problem solving",
-                  color: const Color(0xFF06B6D4),
-                  ),
-                const SizedBox(height: 12),
-                const CourseCardItem(
-                  icon: Icons.storage,
-                  title: "Database Systems",
-                  description: "Data management",
-                  color: Color(0xFF10B981),
-                ),
               ],
             ),
           ),

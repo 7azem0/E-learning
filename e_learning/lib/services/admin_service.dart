@@ -10,6 +10,80 @@ class AdminService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseStorage _storage = FirebaseStorage.instance;
 
+  // ─── Quizes ───────────────────────────────────────────
+
+  Stream<QuerySnapshot> getQuizzes() {
+    return _firestore
+        .collection('quizzes')
+        .orderBy('createdAt', descending: true)
+        .snapshots();
+  }
+
+  Future<String> createQuiz({
+    required String title,
+    String? description,
+    String? courseId,
+  }) async {
+    try {
+      final quizRef = await _firestore.collection('quizzes').add({
+        'title': title,
+        'description': description ?? '',
+        'courseId': courseId,
+        'questionCount': 10,
+        'autoGraded': true,
+        'createdAt': Timestamp.now(),
+      });
+
+      final questions = _buildDefaultQuizQuestions(title, 10);
+      for (final question in questions) {
+        await _firestore
+            .collection('quizzes/${quizRef.id}/questions')
+            .add(question);
+      }
+
+      return 'Success';
+    } catch (e) {
+      return 'Failed to create quiz';
+    }
+  }
+
+  List<Map<String, dynamic>> _buildDefaultQuizQuestions(String title, int count) {
+    return List.generate(count, (index) {
+      final questionIndex = index + 1;
+      return {
+        'question': 'Auto-generated MCQ $questionIndex for "$title".',
+        'options': [
+          'Correct answer',
+          'Alternative answer 1',
+          'Alternative answer 2',
+          'Alternative answer 3',
+        ],
+        'correctOptionIndex': 0,
+        'points': 1,
+        'autoGraded': true,
+        'createdAt': Timestamp.now(),
+      };
+    });
+  }
+
+  Future<String> deleteQuiz(String quizId) async {
+    try {
+      final questionSnapshot = await _firestore
+          .collection('quizzes/$quizId/questions')
+          .get();
+      for (final question in questionSnapshot.docs) {
+        await _firestore
+            .collection('quizzes/$quizId/questions')
+            .doc(question.id)
+            .delete();
+      }
+      await _firestore.collection('quizzes').doc(quizId).delete();
+      return 'Success';
+    } catch (e) {
+      return 'Failed to delete quiz';
+    }
+  }
+
   // ─── COURSES ───────────────────────────────────────────
 
   Stream<QuerySnapshot> getCourses() {
