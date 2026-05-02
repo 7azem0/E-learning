@@ -1,3 +1,5 @@
+// ignore_for_file: deprecated_member_use
+
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../services/quiz_attempt_service.dart';
@@ -24,7 +26,7 @@ class _QuizScreenState extends State<QuizScreen> {
   final QuizAttemptService _quizService = QuizAttemptService();
   late PageController _pageController;
   int _currentQuestionIndex = 0;
-  Map<int, int> _selectedAnswers = {}; 
+  final Map<int, int> _selectedAnswers = {}; 
 
   @override
   void initState() {
@@ -221,7 +223,7 @@ class _QuizScreenState extends State<QuizScreen> {
                             borderRadius: BorderRadius.circular(20),
                           ),
                           child: Text(
-                            'تم الإجابة: ${_selectedAnswers.length}',
+                            'Answered: ${_selectedAnswers.length}',
                             style: TextStyle(
                               color: widget.courseColor,
                               fontWeight: FontWeight.bold,

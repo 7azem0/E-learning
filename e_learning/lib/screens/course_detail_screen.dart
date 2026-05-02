@@ -78,7 +78,7 @@ class CourseDetailScreen extends StatelessWidget {
                     section: section,
                     courseColor: courseColor,
                   );
-                }).toList(),
+                }),
             ],
           );
         },
@@ -298,7 +298,7 @@ class _CourseQuizSection extends StatelessWidget {
                     },
                   ),
                 );
-              }).toList(),
+              }),
           ],
         );
       },
