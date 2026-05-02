@@ -6,7 +6,7 @@ class QuizResultScreen extends StatelessWidget {
   final Color courseColor;
   final int correctAnswers;
   final int totalQuestions;
-  final int score; // النسبة المئوية
+  final int score; 
   final String attemptId;
   final String quizId;
 
@@ -28,7 +28,7 @@ class QuizResultScreen extends StatelessWidget {
         elevation: 0,
         backgroundColor: courseColor,
         foregroundColor: Colors.white,
-        title: const Text('نتيجة الـ Quiz'),
+        title: const Text('Quiz Results'),
         automaticallyImplyLeading: false,
       ),
       body: StreamBuilder<DocumentSnapshot>(
@@ -90,7 +90,7 @@ class QuizResultScreen extends StatelessWidget {
                               ),
                               const SizedBox(height: 8),
                               const Text(
-                                'النسبة المئوية',
+                                'Percentage',
                                 style: TextStyle(
                                   fontSize: 14,
                                   color: Colors.white70,
@@ -113,7 +113,7 @@ class QuizResultScreen extends StatelessWidget {
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        'إجاباتك الصحيحة: $correctAnswers من $totalQuestions',
+                        'You got $correctAnswers out of $totalQuestions',
                         style: TextStyle(
                           fontSize: 16,
                           color: Colors.white.withOpacity(0.9),
@@ -142,7 +142,7 @@ class QuizResultScreen extends StatelessWidget {
                         children: [
                           Expanded(
                             child: _StatCard(
-                              title: 'الإجابات الصحيحة',
+                              title: 'Correct Answers',
                               value: '$correctAnswers',
                               icon: Icons.check_circle,
                               color: Colors.green,
@@ -151,7 +151,7 @@ class QuizResultScreen extends StatelessWidget {
                           const SizedBox(width: 12),
                           Expanded(
                             child: _StatCard(
-                              title: 'الإجابات الخاطئة',
+                              title: 'Incorrect Answers',
                               value: '${totalQuestions - correctAnswers}',
                               icon: Icons.cancel,
                               color: Colors.red,
@@ -182,7 +182,7 @@ class QuizResultScreen extends StatelessWidget {
                                 const SizedBox(width: 12),
                                 const Expanded(
                                   child: Text(
-                                    'ملخص الأسئلة',
+                                    'Question Summary',
                                     style: TextStyle(
                                       fontSize: 16,
                                       fontWeight: FontWeight.bold,
@@ -223,7 +223,7 @@ class QuizResultScreen extends StatelessWidget {
             Navigator.of(context).popUntil((route) => route.isFirst);
           },
           child: const Text(
-            'الرجوع إلى الكورس',
+            'Return to Course',
             style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.bold,
@@ -237,15 +237,15 @@ class QuizResultScreen extends StatelessWidget {
 
   String _getResultMessage() {
     if (score >= 90) {
-      return '🎉 ممتاز جداً!';
+      return 'Perfect';
     } else if (score >= 80) {
-      return '👏 ممتاز!';
+      return 'Excellent';
     } else if (score >= 70) {
-      return '✅ جيد جداً';
+      return 'Very good';
     } else if (score >= 60) {
-      return '👍 جيد';
+      return 'Good';
     } else {
-      return '💪 حاول مرة أخرى';
+      return '💪 Try again';
     }
   }
 }
@@ -360,7 +360,7 @@ class _ReviewList extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'السؤال ${index + 1}',
+                            'Question ${index + 1}',
                             style: TextStyle(
                               fontSize: 12,
                               color: Colors.grey.shade600,

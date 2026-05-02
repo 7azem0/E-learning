@@ -24,7 +24,7 @@ class _QuizScreenState extends State<QuizScreen> {
   final QuizAttemptService _quizService = QuizAttemptService();
   late PageController _pageController;
   int _currentQuestionIndex = 0;
-  Map<int, int> _selectedAnswers = {}; // سؤال رقم -> الإجابة المختارة
+  Map<int, int> _selectedAnswers = {}; 
 
   @override
   void initState() {
@@ -47,7 +47,6 @@ class _QuizScreenState extends State<QuizScreen> {
       _selectedAnswers[_currentQuestionIndex] = optionIndex;
     });
 
-    // حفظ الإجابة في Firestore
     try {
       await _quizService.saveAnswer(
         attemptId: _attemptId,
@@ -81,19 +80,19 @@ class _QuizScreenState extends State<QuizScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('تأكيد التسليم'),
-        content: const Text('هل أنت متأكد من تسليم الـ Quiz؟'),
+        title: const Text('Confirm Submission'),
+        content: const Text('Are you sure you want to submit the quiz?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('إلغاء'),
+            child: const Text('Cancel'),
           ),
           TextButton(
             onPressed: () async {
               Navigator.pop(context);
               _submitQuizHandler();
             },
-            child: const Text('تسليم'),
+            child: const Text('Submit'),
           ),
         ],
       ),
@@ -132,12 +131,12 @@ class _QuizScreenState extends State<QuizScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('خطأ'),
+        title: const Text('Error'),
         content: Text(message),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('حسناً'),
+            child: const Text('OK'),
           ),
         ],
       ),
@@ -157,7 +156,7 @@ class _QuizScreenState extends State<QuizScreen> {
         elevation: 0,
         backgroundColor: widget.courseColor,
         foregroundColor: Colors.white,
-        title: const Text('حل الـ Quiz'),
+        title: const Text('Solve the Quiz'),
       ),
       body: StreamBuilder<DocumentSnapshot>(
         stream: FirebaseFirestore.instance
@@ -206,7 +205,7 @@ class _QuizScreenState extends State<QuizScreen> {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
-                          'السؤال ${_currentQuestionIndex + 1} من ${questions.length}',
+                          'Question ${_currentQuestionIndex + 1} of ${questions.length}',
                           style: const TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
@@ -278,7 +277,7 @@ class _QuizScreenState extends State<QuizScreen> {
                           Expanded(
                             child: OutlinedButton(
                               onPressed: _goToPreviousQuestion,
-                              child: const Text('السابق'),
+                              child: const Text('Previous'),
                             ),
                           )
                         else
@@ -288,7 +287,7 @@ class _QuizScreenState extends State<QuizScreen> {
                           Expanded(
                             child: ElevatedButton(
                               onPressed: _goToNextQuestion,
-                              child: const Text('التالي'),
+                              child: const Text('Next'),
                             ),
                           )
                         else
@@ -299,7 +298,7 @@ class _QuizScreenState extends State<QuizScreen> {
                               ),
                               onPressed: _submitQuiz,
                               child: const Text(
-                                'تسليم',
+                                'Submit',
                                 style: TextStyle(color: Colors.white),
                               ),
                             ),
@@ -364,7 +363,7 @@ class QuestionCard extends StatelessWidget {
           const SizedBox(height: 32),
           // Options
           Text(
-            'الاختيارات:',
+            'Options:',
             style: TextStyle(
               fontSize: 14,
               color: Colors.grey.shade600,

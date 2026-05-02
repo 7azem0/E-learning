@@ -16,7 +16,6 @@ class QuizService {
 
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  /// Main function — reads PDF, generates quiz, saves to your existing structure
   Future<String> generateQuizFromLesson({
     required String lessonTitle,
     required String pdfUrl,

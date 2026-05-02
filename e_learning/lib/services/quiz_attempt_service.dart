@@ -9,13 +9,11 @@ class QuizAttemptService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
-  /// بدء محاولة جديدة للـ Quiz
   Future<String> startQuizAttempt({required String quizId}) async {
     try {
       final userId = _auth.currentUser?.uid;
       if (userId == null) throw Exception('User not authenticated');
 
-      // إنشاء محاولة جديدة
       final attemptRef = await _firestore.collection('quiz_attempts').add({
         'userId': userId,
         'quizId': quizId,
@@ -23,7 +21,7 @@ class QuizAttemptService {
         'completedAt': null,
         'score': null,
         'totalQuestions': 0,
-        'answers': {}, // سيتم حفظ الإجابات هنا
+        'answers': {}, 
       });
 
       return attemptRef.id;
@@ -32,7 +30,6 @@ class QuizAttemptService {
     }
   }
 
-  /// حفظ إجابة واحدة أثناء الإجابة
   Future<void> saveAnswer({
     required String attemptId,
     required int questionIndex,
@@ -47,7 +44,6 @@ class QuizAttemptService {
     }
   }
 
-  /// تسليم الـ Quiz وحساب النتيجة
   Future<Map<String, dynamic>> submitQuiz({
     required String attemptId,
     required String quizId,
@@ -56,7 +52,6 @@ class QuizAttemptService {
       final userId = _auth.currentUser?.uid;
       if (userId == null) throw Exception('User not authenticated');
 
-      // الحصول على بيانات المحاولة
       final attemptDoc = await _firestore
           .collection('quiz_attempts')
           .doc(attemptId)
@@ -65,7 +60,6 @@ class QuizAttemptService {
       final attemptData = attemptDoc.data() as Map<String, dynamic>;
       final answers = attemptData['answers'] as Map<String, dynamic>? ?? {};
 
-      // الحصول على جميع أسئلة الـ Quiz
       final questionsSnapshot = await _firestore
           .collection('quizzes/$quizId/questions')
           .get();
@@ -73,10 +67,9 @@ class QuizAttemptService {
       int correctCount = 0;
       int totalQuestions = questionsSnapshot.docs.length;
 
-      // حساب الإجابات الصحيحة
       for (int i = 0; i < questionsSnapshot.docs.length; i++) {
         final question =
-            questionsSnapshot.docs[i].data() as Map<String, dynamic>;
+            questionsSnapshot.docs[i].data();
         final correctIndex = question['correctOptionIndex'] as int?;
 
         final answeredIndex = answers['$i'] as int?;
@@ -86,12 +79,10 @@ class QuizAttemptService {
         }
       }
 
-      // حساب النسبة المئوية
       final percentage = totalQuestions > 0
           ? (correctCount / totalQuestions * 100).toInt()
           : 0;
 
-      // تحديث بيانات المحاولة بالنتيجة
       await _firestore.collection('quiz_attempts').doc(attemptId).update({
         'completedAt': Timestamp.now(),
         'score': percentage,
@@ -110,7 +101,6 @@ class QuizAttemptService {
     }
   }
 
-  /// الحصول على محاولات الطالب السابقة للـ Quiz
   Stream<QuerySnapshot> getStudentAttempts(String quizId) {
     final userId = _auth.currentUser?.uid;
     if (userId == null) return Stream.empty();
@@ -123,7 +113,6 @@ class QuizAttemptService {
         .snapshots();
   }
 
-  /// الحصول على تفاصيل محاولة معينة
   Future<Map<String, dynamic>?> getAttemptDetails(String attemptId) async {
     try {
       final doc = await _firestore
