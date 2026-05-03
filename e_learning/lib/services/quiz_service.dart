@@ -4,8 +4,9 @@ import 'dart:convert';
 import 'dart:typed_data';
 import 'package:http/http.dart' as http;
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'dart:html' as html;
+//import 'dart:html' as html;
 import 'dart:async';
+import 'platform_file_picker.dart';
 
 class QuizService {
   static final QuizService _instance = QuizService._internal();
@@ -50,26 +51,7 @@ class QuizService {
   }
 
   Future<Uint8List?> _downloadPdf(String url) async {
-  try {
-    final completer = Completer<Uint8List?>();
-
-    final request = html.HttpRequest();
-    request.open('GET', url);
-    request.responseType = 'arraybuffer';
-
-    request.onLoad.listen((_) {
-      final buffer = request.response as dynamic;
-      final bytes = Uint8List.view(buffer);
-      completer.complete(bytes);
-    });
-
-    request.onError.listen((_) => completer.complete(null));
-    request.send();
-
-    return completer.future;
-  } catch (e) {
-    return null;
-  }
+  return fetchFileBytes(url);
 }
 
   Future<List<Map<String, dynamic>>?> _generateQuestions({

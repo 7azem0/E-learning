@@ -1,8 +1,9 @@
 // ignore_for_file: use_build_context_synchronously, avoid_web_libraries_in_flutter, deprecated_member_use
 
-import 'dart:async';
-import 'dart:html' as html;
-import 'dart:typed_data';
+//import 'dart:async';
+//import 'dart:html' as html;
+//import 'dart:typed_data';
+import '../services/platform_file_picker.dart';
 import '../services/quiz_service.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -1253,28 +1254,8 @@ class _LessonCardState extends State<_LessonCard> {
 
   Future<void> _uploadFile({required bool isPdf}) async {
   try {
-    final completer = Completer<html.File?>();
-
-    final input = html.FileUploadInputElement();
-    input.accept = isPdf ? 'application/pdf' : 'video/*';
-    input.click();
-
-    input.onChange.listen((e) {
-      if (input.files!.isEmpty) {
-        completer.complete(null);
-      } else {
-        completer.complete(input.files!.first);
-      }
-    });
-
-    final htmlFile = await completer.future;
-    if (htmlFile == null) return;
-
-    final reader = html.FileReader();
-    reader.readAsArrayBuffer(htmlFile);
-    await reader.onLoad.first;
-
-    final bytes = Uint8List.fromList(reader.result as List<int>);
+    final file = await pickFile(isPdf ? 'application/pdf' : 'video/*');
+    if (file == null) return;
 
     if (isPdf) {
       setState(() => _pdfProgress = 0);
@@ -1282,20 +1263,16 @@ class _LessonCardState extends State<_LessonCard> {
         courseId: widget.courseId,
         sectionId: widget.sectionId,
         lessonId: widget.lesson.id,
-        fileBytes: bytes,
-        fileName: htmlFile.name,
+        fileBytes: file['bytes'],
+        fileName: file['name'],
         onProgress: (p) => setState(() => _pdfProgress = p),
       );
       setState(() => _pdfProgress = null);
-
-      // 👇 Show result
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(result == 'Success' ? '✅ PDF uploaded!' : '❌ $result'),
-            backgroundColor: result == 'Success' ? Colors.green : Colors.red,
-          ),
-        );
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text(result == 'Success' ? '✅ PDF uploaded!' : '❌ $result'),
+          backgroundColor: result == 'Success' ? Colors.green : Colors.red,
+        ));
       }
     } else {
       setState(() => _videoProgress = 0);
@@ -1303,20 +1280,16 @@ class _LessonCardState extends State<_LessonCard> {
         courseId: widget.courseId,
         sectionId: widget.sectionId,
         lessonId: widget.lesson.id,
-        fileBytes: bytes,
-        fileName: htmlFile.name,
+        fileBytes: file['bytes'],
+        fileName: file['name'],
         onProgress: (p) => setState(() => _videoProgress = p),
       );
       setState(() => _videoProgress = null);
-
-      // 👇 Show result
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(result == 'Success' ? '✅ Video uploaded!' : '❌ $result'),
-            backgroundColor: result == 'Success' ? Colors.green : Colors.red,
-          ),
-        );
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text(result == 'Success' ? '✅ Video uploaded!' : '❌ $result'),
+          backgroundColor: result == 'Success' ? Colors.green : Colors.red,
+        ));
       }
     }
   } catch (e) {
@@ -1324,15 +1297,12 @@ class _LessonCardState extends State<_LessonCard> {
       _pdfProgress = null;
       _videoProgress = null;
     });
-    // 👇 Show the actual error
     if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('❌ Error: $e'),
-          backgroundColor: Colors.red,
-          duration: const Duration(seconds: 8), // long enough to read
-        ),
-      );
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text('❌ Error: $e'),
+        backgroundColor: Colors.red,
+        duration: const Duration(seconds: 8),
+      ));
     }
   }
 }
