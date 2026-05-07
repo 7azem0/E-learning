@@ -1,10 +1,14 @@
-// ignore_for_file: deprecated_member_use
+// ignore_for_file: library_prefixes, deprecated_member_use
 
+import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:url_launcher/url_launcher.dart';
+import 'package:http/http.dart' as http;
+import 'package:flutter_pdfview/flutter_pdfview.dart';
+import 'package:video_player/video_player.dart';
+import 'package:chewie/chewie.dart';
+import 'package:path_provider/path_provider.dart';
 
-// Conditional import for web views
 import 'lesson_screen_stub.dart'
     if (dart.library.html) 'lesson_screen_web.dart' as webHelper;
 
@@ -123,58 +127,147 @@ class _LessonScreenState extends State<LessonScreen>
   }
 
   Widget _buildMobileContent() {
-    return ListView(
-      padding: const EdgeInsets.all(16),
-      children: [
-        if (widget.videoUrl != null)
-          _ContentTile(
-            icon: Icons.video_library_outlined,
-            label: 'Watch Video',
-            url: widget.videoUrl!,
-            color: widget.courseColor,
-          ),
-        if (widget.pdfUrl != null)
-          _ContentTile(
-            icon: Icons.picture_as_pdf,
-            label: 'View PDF',
-            url: widget.pdfUrl!,
-            color: widget.courseColor,
-          ),
-      ],
+    if (_tabs.length == 1) return _buildMobileView(_tabs[0].text!);
+    return TabBarView(
+      controller: _tabController,
+      children: _tabs.map((t) => _buildMobileView(t.text!)).toList(),
+    );
+  }
+
+  Widget _buildMobileView(String type) {
+    if (type == 'Video' && widget.videoUrl != null) {
+      return _VideoPlayerWidget(url: widget.videoUrl!);
+    } else if (type == 'PDF' && widget.pdfUrl != null) {
+      return _PdfViewerWidget(url: widget.pdfUrl!);
+    }
+    return const SizedBox();
+  }
+}
+
+// ─── PDF VIEWER ──────────────────────────────────────────────────────────────
+
+class _PdfViewerWidget extends StatefulWidget {
+  final String url;
+  const _PdfViewerWidget({required this.url});
+
+  @override
+  State<_PdfViewerWidget> createState() => _PdfViewerWidgetState();
+}
+
+class _PdfViewerWidgetState extends State<_PdfViewerWidget> {
+  bool _isLoading = true;
+  String? _localPath;
+  String? _error;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadPdf();
+  }
+
+  Future<void> _loadPdf() async {
+    try {
+      final response = await http.get(Uri.parse(widget.url));
+      if (response.statusCode == 200) {
+        final dir = await getTemporaryDirectory();
+        final file = File('${dir.path}/lesson.pdf');
+        await file.writeAsBytes(response.bodyBytes);
+        setState(() {
+          _localPath = file.path;
+          _isLoading = false;
+        });
+      } else {
+        setState(() {
+          _error = 'Failed to load PDF';
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _error = 'Error: $e';
+        _isLoading = false;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_isLoading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+    if (_error != null) {
+      return Center(child: Text(_error!));
+    }
+    return PDFView(
+      filePath: _localPath!,
+      enableSwipe: true,
+      swipeHorizontal: false,
+      autoSpacing: true,
+      pageFling: true,
     );
   }
 }
 
-class _ContentTile extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final String url;
-  final Color color;
+// ─── VIDEO PLAYER ────────────────────────────────────────────────────────────
 
-  const _ContentTile({
-    required this.icon,
-    required this.label,
-    required this.url,
-    required this.color,
-  });
+class _VideoPlayerWidget extends StatefulWidget {
+  final String url;
+  const _VideoPlayerWidget({required this.url});
+
+  @override
+  State<_VideoPlayerWidget> createState() => _VideoPlayerWidgetState();
+}
+
+class _VideoPlayerWidgetState extends State<_VideoPlayerWidget> {
+  late VideoPlayerController _videoController;
+  ChewieController? _chewieController;
+  bool _isLoading = true;
+  String? _error;
+
+  @override
+  void initState() {
+    super.initState();
+    _initPlayer();
+  }
+
+  Future<void> _initPlayer() async {
+    try {
+      _videoController = VideoPlayerController.networkUrl(
+        Uri.parse(widget.url),
+      );
+      await _videoController.initialize();
+      _chewieController = ChewieController(
+        videoPlayerController: _videoController,
+        autoPlay: false,
+        looping: false,
+        allowFullScreen: true,
+        allowMuting: true,
+        showControls: true,
+      );
+      setState(() => _isLoading = false);
+    } catch (e) {
+      setState(() {
+        _error = 'Error loading video: $e';
+        _isLoading = false;
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    _videoController.dispose();
+    _chewieController?.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      margin: const EdgeInsets.only(bottom: 12),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: ListTile(
-        leading: Icon(icon, color: color),
-        title: Text(label,
-            style: const TextStyle(fontWeight: FontWeight.w600)),
-        trailing: Icon(Icons.open_in_new, color: color),
-        onTap: () async {
-          final uri = Uri.parse(url);
-          if (await canLaunchUrl(uri)) {
-            await launchUrl(uri, mode: LaunchMode.externalApplication);
-          }
-        },
-      ),
-    );
+    if (_isLoading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+    if (_error != null) {
+      return Center(child: Text(_error!));
+    }
+    return Chewie(controller: _chewieController!);
   }
 }

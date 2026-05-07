@@ -1,10 +1,11 @@
+// ignore_for_file: avoid_print
+
 import 'dart:convert';
 import 'dart:typed_data';
 import 'package:http/http.dart' as http;
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'platform_file_picker.dart';
 
 class QuizService {
   static final QuizService _instance = QuizService._internal();
