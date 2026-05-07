@@ -4,6 +4,7 @@ import 'dart:async';
 import 'dart:html' as html;
 import 'dart:typed_data';
 import '../services/quiz_service.dart';
+import '../services/announcement_service.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../services/admin_service.dart';
@@ -15,8 +16,11 @@ class AdminPanelScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Instructor Panel', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24)),
-        backgroundColor: const Color(0xFF6366F1),
+        title: const Text(
+          'Instructor Panel',
+          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24),
+        ),
+        backgroundColor: const Color(0xFF334155),
         foregroundColor: Colors.white,
         elevation: 0,
       ),
@@ -33,19 +37,8 @@ class AdminPanelScreen extends StatelessWidget {
               // Add Course Button with modern design
               Container(
                 decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [Color(0xFF6366F1), Color(0xFF8B5CF6)],
-                  ),
-                  borderRadius: BorderRadius.circular(16),
-                  boxShadow: [
-                    BoxShadow(
-                      color: const Color(0xFF6366F1).withOpacity(0.3),
-                      blurRadius: 15,
-                      offset: const Offset(0, 8),
-                    ),
-                  ],
+                  color: const Color(0xFF334155),
+                  borderRadius: BorderRadius.circular(12),
                 ),
                 child: Material(
                   color: Colors.transparent,
@@ -53,7 +46,10 @@ class AdminPanelScreen extends StatelessWidget {
                     onTap: () => _showCourseDialog(context),
                     borderRadius: BorderRadius.circular(16),
                     child: Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
+                      padding: const EdgeInsets.symmetric(
+                        vertical: 20,
+                        horizontal: 16,
+                      ),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: const [
@@ -70,38 +66,29 @@ class AdminPanelScreen extends StatelessWidget {
                         ],
                       ),
                     ),
-                    
                   ),
                 ),
               ),
               const SizedBox(height: 16),
               Container(
                 decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [Color(0xFF6366F1), Color(0xFF8B5CF6)],
-                  ),
-                  borderRadius: BorderRadius.circular(16),
-                  boxShadow: [
-                    BoxShadow(
-                      color: const Color(0xFF6366F1).withOpacity(0.3),
-                      blurRadius: 15,
-                      offset: const Offset(0, 8),
-                    ),
-                  ],
+                  color: const Color(0xFF475569),
+                  borderRadius: BorderRadius.circular(12),
                 ),
                 child: Material(
                   color: Colors.transparent,
                   child: InkWell(
-                    onTap: () => _showCourseDialog(context),
+                    onTap: () => _showAnnouncementDialog(context, courses),
                     borderRadius: BorderRadius.circular(16),
                     child: Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
+                      padding: const EdgeInsets.symmetric(
+                        vertical: 20,
+                        horizontal: 16,
+                      ),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: const [
-                          Icon(Icons.add, color: Colors.white),
+                          Icon(Icons.campaign_outlined, color: Colors.white),
                           SizedBox(width: 8),
                           Text(
                             'Broadcast an Announcement',
@@ -114,19 +101,17 @@ class AdminPanelScreen extends StatelessWidget {
                         ],
                       ),
                     ),
-                    
                   ),
                 ),
-                
               ),
               const SizedBox(height: 24),
 
               // Courses Section
               Text(
                 'Manage Courses',
-                style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
+                style: Theme.of(
+                  context,
+                ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 12),
 
@@ -136,7 +121,11 @@ class AdminPanelScreen extends StatelessWidget {
                     padding: const EdgeInsets.symmetric(vertical: 40),
                     child: Column(
                       children: [
-                        Icon(Icons.school_outlined, size: 48, color: Colors.grey.shade400),
+                        Icon(
+                          Icons.school_outlined,
+                          size: 48,
+                          color: Colors.grey.shade400,
+                        ),
                         const SizedBox(height: 12),
                         Text(
                           'No courses yet',
@@ -151,9 +140,9 @@ class AdminPanelScreen extends StatelessWidget {
               const SizedBox(height: 24),
               Text(
                 'Manage Quizzes',
-                style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
+                style: Theme.of(
+                  context,
+                ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 12),
               StreamBuilder<QuerySnapshot>(
@@ -187,9 +176,14 @@ class AdminPanelScreen extends StatelessWidget {
                       }
                       return Card(
                         margin: const EdgeInsets.only(bottom: 12),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14),
+                        ),
                         child: ListTile(
-                          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 8,
+                          ),
                           title: Text(quizData['title'] ?? ''),
                           subtitle: Text(courseTitle),
                           trailing: Row(
@@ -197,30 +191,49 @@ class AdminPanelScreen extends StatelessWidget {
                             children: [
                               Text('${quizData['questionCount'] ?? 10} Qs'),
                               IconButton(
-                                icon: const Icon(Icons.delete, color: Colors.redAccent),
+                                icon: const Icon(
+                                  Icons.delete,
+                                  color: Colors.redAccent,
+                                ),
                                 onPressed: () async {
                                   final confirmed = await showDialog<bool>(
                                     context: context,
                                     builder: (context) => AlertDialog(
                                       title: const Text('Delete Quiz'),
-                                      content: const Text('Are you sure you want to delete this quiz and its questions?'),
+                                      content: const Text(
+                                        'Are you sure you want to delete this quiz and its questions?',
+                                      ),
                                       actions: [
                                         TextButton(
-                                          onPressed: () => Navigator.pop(context, false),
+                                          onPressed: () =>
+                                              Navigator.pop(context, false),
                                           child: const Text('Cancel'),
                                         ),
                                         TextButton(
-                                          onPressed: () => Navigator.pop(context, true),
-                                          child: const Text('Delete', style: TextStyle(color: Colors.red)),
+                                          onPressed: () =>
+                                              Navigator.pop(context, true),
+                                          child: const Text(
+                                            'Delete',
+                                            style: TextStyle(color: Colors.red),
+                                          ),
                                         ),
                                       ],
                                     ),
                                   );
                                   if (confirmed == true) {
-                                    final result = await AdminService().deleteQuiz(quiz.id);
+                                    final result = await AdminService()
+                                        .deleteQuiz(quiz.id);
                                     if (context.mounted) {
-                                      ScaffoldMessenger.of(context).showSnackBar(
-                                        SnackBar(content: Text(result == 'Success' ? 'Quiz deleted' : 'Failed to delete quiz')),
+                                      ScaffoldMessenger.of(
+                                        context,
+                                      ).showSnackBar(
+                                        SnackBar(
+                                          content: Text(
+                                            result == 'Success'
+                                                ? 'Quiz deleted'
+                                                : 'Failed to delete quiz',
+                                          ),
+                                        ),
                                       );
                                     }
                                   }
@@ -243,7 +256,9 @@ class AdminPanelScreen extends StatelessWidget {
 
   void _showCourseDialog(BuildContext context, {DocumentSnapshot? course}) {
     final titleController = TextEditingController(text: course?['title'] ?? '');
-    final descController = TextEditingController(text: course?['description'] ?? '');
+    final descController = TextEditingController(
+      text: course?['description'] ?? '',
+    );
     String? selectedIcon = course?['icon'] ?? 'school';
     int? selectedColor = course?['color'] ?? 0xFF6366F1;
 
@@ -251,8 +266,10 @@ class AdminPanelScreen extends StatelessWidget {
       context: context,
       builder: (context) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: Text(course == null ? 'Create New Course' : 'Edit Course',
-            style: const TextStyle(fontWeight: FontWeight.bold)),
+        title: Text(
+          course == null ? 'Create New Course' : 'Edit Course',
+          style: const TextStyle(fontWeight: FontWeight.bold),
+        ),
         content: SingleChildScrollView(
           child: StatefulBuilder(
             builder: (context, setState) => Column(
@@ -263,7 +280,9 @@ class AdminPanelScreen extends StatelessWidget {
                   controller: titleController,
                   decoration: InputDecoration(
                     labelText: 'Course Title',
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                     prefixIcon: const Icon(Icons.title),
                   ),
                 ),
@@ -272,67 +291,106 @@ class AdminPanelScreen extends StatelessWidget {
                   controller: descController,
                   decoration: InputDecoration(
                     labelText: 'Description',
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                     prefixIcon: const Icon(Icons.description),
                   ),
                   maxLines: 3,
                 ),
                 const SizedBox(height: 16),
-                Text('Select Icon', style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold)),
+                Text(
+                  'Select Icon',
+                  style: Theme.of(
+                    context,
+                  ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
+                ),
                 const SizedBox(height: 8),
                 Wrap(
                   spacing: 8,
-                  children: [
-                    'school', 'code', 'data_usage', 'analytics', 'storage',
-                    'computer', 'cloud', 'auto_awesome', 'smart_toy', 'security'
-                  ].map((icon) {
-                    final isSelected = selectedIcon == icon;
-                    return GestureDetector(
-                      onTap: () => setState(() => selectedIcon = icon),
-                      child: Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          border: Border.all(
-                            color: isSelected ? const Color(0xFF6366F1) : Colors.grey,
-                            width: isSelected ? 2 : 1,
+                  children:
+                      [
+                        'school',
+                        'code',
+                        'data_usage',
+                        'analytics',
+                        'storage',
+                        'computer',
+                        'cloud',
+                        'auto_awesome',
+                        'smart_toy',
+                        'security',
+                      ].map((icon) {
+                        final isSelected = selectedIcon == icon;
+                        return GestureDetector(
+                          onTap: () => setState(() => selectedIcon = icon),
+                          child: Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              border: Border.all(
+                                color: isSelected
+                                    ? const Color(0xFF6366F1)
+                                    : Colors.grey,
+                                width: isSelected ? 2 : 1,
+                              ),
+                              borderRadius: BorderRadius.circular(12),
+                              color: isSelected
+                                  ? const Color(0xFF6366F1).withOpacity(0.1)
+                                  : Colors.transparent,
+                            ),
+                            child: Icon(
+                              _getIconFromName(icon),
+                              color: const Color(0xFF6366F1),
+                            ),
                           ),
-                          borderRadius: BorderRadius.circular(12),
-                          color: isSelected ? const Color(0xFF6366F1).withOpacity(0.1) : Colors.transparent,
-                        ),
-                        child: Icon(_getIconFromName(icon), color: const Color(0xFF6366F1)),
-                      ),
-                    );
-                  }).toList(),
+                        );
+                      }).toList(),
                 ),
                 const SizedBox(height: 16),
-                Text('Select Color', style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold)),
+                Text(
+                  'Select Color',
+                  style: Theme.of(
+                    context,
+                  ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
+                ),
                 const SizedBox(height: 8),
                 Wrap(
                   spacing: 8,
-                  children: [
-                    0xFF6366F1, 0xFF8B5CF6, 0xFF06B6D4, 0xFF10B981,
-                    0xFFF59E0B, 0xFFEC4899, 0xFF3B82F6, 0xFF14B8A6, 0xFFEF4444, 0xFF059669,
-                  ].map((color) {
-                    final isSelected = selectedColor == color;
-                    return GestureDetector(
-                      onTap: () => setState(() => selectedColor = color),
-                      child: Container(
-                        width: 44,
-                        height: 44,
-                        decoration: BoxDecoration(
-                          color: Color(color),
-                          shape: BoxShape.circle,
-                          border: Border.all(
-                            color: isSelected ? Colors.black : Colors.transparent,
-                            width: isSelected ? 3 : 0,
+                  children:
+                      [
+                        0xFF6366F1,
+                        0xFF8B5CF6,
+                        0xFF06B6D4,
+                        0xFF10B981,
+                        0xFFF59E0B,
+                        0xFFEC4899,
+                        0xFF3B82F6,
+                        0xFF14B8A6,
+                        0xFFEF4444,
+                        0xFF059669,
+                      ].map((color) {
+                        final isSelected = selectedColor == color;
+                        return GestureDetector(
+                          onTap: () => setState(() => selectedColor = color),
+                          child: Container(
+                            width: 44,
+                            height: 44,
+                            decoration: BoxDecoration(
+                              color: Color(color),
+                              shape: BoxShape.circle,
+                              border: Border.all(
+                                color: isSelected
+                                    ? Colors.black
+                                    : Colors.transparent,
+                                width: isSelected ? 3 : 0,
+                              ),
+                            ),
+                            child: isSelected
+                                ? const Icon(Icons.check, color: Colors.white)
+                                : null,
                           ),
-                        ),
-                        child: isSelected
-                            ? const Icon(Icons.check, color: Colors.white)
-                            : null,
-                      ),
-                    );
-                  }).toList(),
+                        );
+                      }).toList(),
                 ),
               ],
             ),
@@ -381,6 +439,84 @@ class AdminPanelScreen extends StatelessWidget {
     );
   }
 
+  void _showAnnouncementDialog(
+    BuildContext context,
+    List<QueryDocumentSnapshot> courses,
+  ) {
+    final messageController = TextEditingController();
+    String? selectedCourseId = courses.isNotEmpty ? courses.first.id : null;
+
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Publish Announcement'),
+        content: StatefulBuilder(
+          builder: (context, setState) => Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              DropdownButtonFormField<String>(
+                value: selectedCourseId,
+                decoration: const InputDecoration(labelText: 'Course'),
+                items: courses
+                    .map(
+                      (course) => DropdownMenuItem(
+                        value: course.id,
+                        child: Text(course['title'] ?? 'Untitled course'),
+                      ),
+                    )
+                    .toList(),
+                onChanged: (value) => setState(() => selectedCourseId = value),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: messageController,
+                maxLines: 4,
+                decoration: const InputDecoration(
+                  labelText: 'Message',
+                  alignLabelWithHint: true,
+                ),
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: selectedCourseId == null
+                ? null
+                : () async {
+                    final result = await AnnouncementService()
+                        .createAnnouncement(
+                          courseId: selectedCourseId!,
+                          message: messageController.text,
+                        );
+                    if (ctx.mounted) {
+                      Navigator.pop(ctx);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(
+                            result == 'Success'
+                                ? 'Announcement published'
+                                : result,
+                          ),
+                        ),
+                      );
+                    }
+                  },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF334155),
+              foregroundColor: Colors.white,
+            ),
+            child: const Text('Publish'),
+          ),
+        ],
+      ),
+    );
+  }
+
   IconData _getIconFromName(String iconName) {
     switch (iconName.toLowerCase()) {
       case 'code':
@@ -418,7 +554,7 @@ class _CourseCard extends StatelessWidget {
     final courseData = course.data() as Map<String, dynamic>;
     final colorHex = courseData['color'] as int? ?? 0xFF6366F1;
     final iconName = courseData['icon'] as String? ?? 'school';
-    
+
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
@@ -440,7 +576,10 @@ class _CourseCard extends StatelessWidget {
             highlightColor: Colors.transparent,
           ),
           child: ExpansionTile(
-            tilePadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            tilePadding: const EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: 12,
+            ),
             collapsedIconColor: Colors.white,
             iconColor: Colors.white,
             title: Row(
@@ -451,7 +590,11 @@ class _CourseCard extends StatelessWidget {
                     color: Colors.white.withOpacity(0.2),
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: Icon(_getIconFromName(iconName), color: Colors.white, size: 24),
+                  child: Icon(
+                    _getIconFromName(iconName),
+                    color: Colors.white,
+                    size: 24,
+                  ),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
@@ -492,7 +635,10 @@ class _CourseCard extends StatelessWidget {
                   ),
                 ),
                 PopupMenuItem(
-                  child: const Text('Delete', style: TextStyle(color: Colors.red)),
+                  child: const Text(
+                    'Delete',
+                    style: TextStyle(color: Colors.red),
+                  ),
                   onTap: () => _confirmDelete(context, course),
                 ),
               ],
@@ -506,7 +652,9 @@ class _CourseCard extends StatelessWidget {
 
   void _showCourseDialog(BuildContext context, {DocumentSnapshot? course}) {
     final titleController = TextEditingController(text: course?['title'] ?? '');
-    final descController = TextEditingController(text: course?['description'] ?? '');
+    final descController = TextEditingController(
+      text: course?['description'] ?? '',
+    );
     String? selectedIcon = course?['icon'] ?? 'school';
     int? selectedColor = course?['color'] ?? 0xFF6366F1;
 
@@ -514,8 +662,10 @@ class _CourseCard extends StatelessWidget {
       context: context,
       builder: (context) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: Text(course == null ? 'Create New Course' : 'Edit Course',
-            style: const TextStyle(fontWeight: FontWeight.bold)),
+        title: Text(
+          course == null ? 'Create New Course' : 'Edit Course',
+          style: const TextStyle(fontWeight: FontWeight.bold),
+        ),
         content: SingleChildScrollView(
           child: StatefulBuilder(
             builder: (context, setState) => Column(
@@ -526,7 +676,9 @@ class _CourseCard extends StatelessWidget {
                   controller: titleController,
                   decoration: InputDecoration(
                     labelText: 'Course Title',
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                     prefixIcon: const Icon(Icons.title),
                   ),
                 ),
@@ -535,67 +687,106 @@ class _CourseCard extends StatelessWidget {
                   controller: descController,
                   decoration: InputDecoration(
                     labelText: 'Description',
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                     prefixIcon: const Icon(Icons.description),
                   ),
                   maxLines: 3,
                 ),
                 const SizedBox(height: 16),
-                Text('Select Icon', style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold)),
+                Text(
+                  'Select Icon',
+                  style: Theme.of(
+                    context,
+                  ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
+                ),
                 const SizedBox(height: 8),
                 Wrap(
                   spacing: 8,
-                  children: [
-                    'school', 'code', 'data_usage', 'analytics', 'storage',
-                    'computer', 'cloud', 'auto_awesome', 'smart_toy', 'security'
-                  ].map((icon) {
-                    final isSelected = selectedIcon == icon;
-                    return GestureDetector(
-                      onTap: () => setState(() => selectedIcon = icon),
-                      child: Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          border: Border.all(
-                            color: isSelected ? const Color(0xFF6366F1) : Colors.grey,
-                            width: isSelected ? 2 : 1,
+                  children:
+                      [
+                        'school',
+                        'code',
+                        'data_usage',
+                        'analytics',
+                        'storage',
+                        'computer',
+                        'cloud',
+                        'auto_awesome',
+                        'smart_toy',
+                        'security',
+                      ].map((icon) {
+                        final isSelected = selectedIcon == icon;
+                        return GestureDetector(
+                          onTap: () => setState(() => selectedIcon = icon),
+                          child: Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              border: Border.all(
+                                color: isSelected
+                                    ? const Color(0xFF6366F1)
+                                    : Colors.grey,
+                                width: isSelected ? 2 : 1,
+                              ),
+                              borderRadius: BorderRadius.circular(12),
+                              color: isSelected
+                                  ? const Color(0xFF6366F1).withOpacity(0.1)
+                                  : Colors.transparent,
+                            ),
+                            child: Icon(
+                              _getIconFromName(icon),
+                              color: const Color(0xFF6366F1),
+                            ),
                           ),
-                          borderRadius: BorderRadius.circular(12),
-                          color: isSelected ? const Color(0xFF6366F1).withOpacity(0.1) : Colors.transparent,
-                        ),
-                        child: Icon(_getIconFromName(icon), color: const Color(0xFF6366F1)),
-                      ),
-                    );
-                  }).toList(),
+                        );
+                      }).toList(),
                 ),
                 const SizedBox(height: 16),
-                Text('Select Color', style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold)),
+                Text(
+                  'Select Color',
+                  style: Theme.of(
+                    context,
+                  ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
+                ),
                 const SizedBox(height: 8),
                 Wrap(
                   spacing: 8,
-                  children: [
-                    0xFF6366F1, 0xFF8B5CF6, 0xFF06B6D4, 0xFF10B981,
-                    0xFFF59E0B, 0xFFEC4899, 0xFF3B82F6, 0xFF14B8A6, 0xFFEF4444, 0xFF059669,
-                  ].map((color) {
-                    final isSelected = selectedColor == color;
-                    return GestureDetector(
-                      onTap: () => setState(() => selectedColor = color),
-                      child: Container(
-                        width: 44,
-                        height: 44,
-                        decoration: BoxDecoration(
-                          color: Color(color),
-                          shape: BoxShape.circle,
-                          border: Border.all(
-                            color: isSelected ? Colors.black : Colors.transparent,
-                            width: isSelected ? 3 : 0,
+                  children:
+                      [
+                        0xFF6366F1,
+                        0xFF8B5CF6,
+                        0xFF06B6D4,
+                        0xFF10B981,
+                        0xFFF59E0B,
+                        0xFFEC4899,
+                        0xFF3B82F6,
+                        0xFF14B8A6,
+                        0xFFEF4444,
+                        0xFF059669,
+                      ].map((color) {
+                        final isSelected = selectedColor == color;
+                        return GestureDetector(
+                          onTap: () => setState(() => selectedColor = color),
+                          child: Container(
+                            width: 44,
+                            height: 44,
+                            decoration: BoxDecoration(
+                              color: Color(color),
+                              shape: BoxShape.circle,
+                              border: Border.all(
+                                color: isSelected
+                                    ? Colors.black
+                                    : Colors.transparent,
+                                width: isSelected ? 3 : 0,
+                              ),
+                            ),
+                            child: isSelected
+                                ? const Icon(Icons.check, color: Colors.white)
+                                : null,
                           ),
-                        ),
-                        child: isSelected
-                            ? const Icon(Icons.check, color: Colors.white)
-                            : null,
-                      ),
-                    );
-                  }).toList(),
+                        );
+                      }).toList(),
                 ),
               ],
             ),
@@ -649,8 +840,13 @@ class _CourseCard extends StatelessWidget {
       context: context,
       builder: (ctx) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: const Text('Delete Course', style: TextStyle(fontWeight: FontWeight.bold)),
-        content: Text('Are you sure you want to delete "${course['title']}"? This cannot be undone.'),
+        title: const Text(
+          'Delete Course',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
+        content: Text(
+          'Are you sure you want to delete "${course['title']}"? This cannot be undone.',
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
@@ -712,19 +908,23 @@ class _SectionList extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              ...sections.map((section) =>
-                  _SectionCard(courseId: courseId, section: section)),
+              ...sections.map(
+                (section) => _SectionCard(courseId: courseId, section: section),
+              ),
               const SizedBox(height: 8),
               OutlinedButton.icon(
                 onPressed: () =>
                     _showSectionDialog(context, order: sections.length),
                 icon: const Icon(Icons.add, size: 18, color: Color(0xFF6366F1)),
-                label: const Text('Add Section',
-                    style: TextStyle(color: Color(0xFF6366F1))),
+                label: const Text(
+                  'Add Section',
+                  style: TextStyle(color: Color(0xFF6366F1)),
+                ),
                 style: OutlinedButton.styleFrom(
                   side: const BorderSide(color: Color(0xFF6366F1)),
                   shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10)),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
                 ),
               ),
             ],
@@ -734,10 +934,14 @@ class _SectionList extends StatelessWidget {
     );
   }
 
-  void _showSectionDialog(BuildContext context,
-      {DocumentSnapshot? section, required int order}) {
-    final titleController =
-        TextEditingController(text: section?['title'] ?? '');
+  void _showSectionDialog(
+    BuildContext context, {
+    DocumentSnapshot? section,
+    required int order,
+  }) {
+    final titleController = TextEditingController(
+      text: section?['title'] ?? '',
+    );
 
     showDialog(
       context: context,
@@ -750,8 +954,9 @@ class _SectionList extends StatelessWidget {
         ),
         actions: [
           TextButton(
-              onPressed: () => Navigator.pop(ctx),
-              child: const Text('Cancel')),
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancel'),
+          ),
           ElevatedButton(
             onPressed: () async {
               if (section == null) {
@@ -770,9 +975,12 @@ class _SectionList extends StatelessWidget {
               if (ctx.mounted) Navigator.pop(ctx);
             },
             style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF6366F1)),
-            child: Text(section == null ? 'Create' : 'Save',
-                style: const TextStyle(color: Colors.white)),
+              backgroundColor: const Color(0xFF6366F1),
+            ),
+            child: Text(
+              section == null ? 'Create' : 'Save',
+              style: const TextStyle(color: Colors.white),
+            ),
           ),
         ],
       ),
@@ -794,8 +1002,10 @@ class _SectionCard extends StatelessWidget {
       color: Colors.grey.shade50,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: ExpansionTile(
-        title: Text(section['title'],
-            style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
+        title: Text(
+          section['title'],
+          style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
+        ),
         trailing: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -832,8 +1042,9 @@ class _SectionCard extends StatelessWidget {
         ),
         actions: [
           TextButton(
-              onPressed: () => Navigator.pop(ctx),
-              child: const Text('Cancel')),
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancel'),
+          ),
           ElevatedButton(
             onPressed: () async {
               await AdminService().updateSection(
@@ -844,9 +1055,9 @@ class _SectionCard extends StatelessWidget {
               if (ctx.mounted) Navigator.pop(ctx);
             },
             style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF6366F1)),
-            child:
-                const Text('Save', style: TextStyle(color: Colors.white)),
+              backgroundColor: const Color(0xFF6366F1),
+            ),
+            child: const Text('Save', style: TextStyle(color: Colors.white)),
           ),
         ],
       ),
@@ -871,23 +1082,27 @@ class _LessonList extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           child: Column(
             children: [
-              ...lessons.map((lesson) => _LessonCard(
-                    courseId: courseId,
-                    sectionId: sectionId,
-                    lesson: lesson,
-                  )),
+              ...lessons.map(
+                (lesson) => _LessonCard(
+                  courseId: courseId,
+                  sectionId: sectionId,
+                  lesson: lesson,
+                ),
+              ),
               const SizedBox(height: 8),
               OutlinedButton.icon(
                 onPressed: () =>
                     _showLessonDialog(context, order: lessons.length),
                 icon: const Icon(Icons.add, size: 16, color: Color(0xFF6366F1)),
-                label: const Text('Add Lesson',
-                    style: TextStyle(
-                        color: Color(0xFF6366F1), fontSize: 13)),
+                label: const Text(
+                  'Add Lesson',
+                  style: TextStyle(color: Color(0xFF6366F1), fontSize: 13),
+                ),
                 style: OutlinedButton.styleFrom(
                   side: const BorderSide(color: Color(0xFF6366F1)),
                   shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10)),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
                 ),
               ),
             ],
@@ -910,8 +1125,9 @@ class _LessonList extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             TextField(
-                controller: titleController,
-                decoration: const InputDecoration(labelText: 'Lesson Title')),
+              controller: titleController,
+              decoration: const InputDecoration(labelText: 'Lesson Title'),
+            ),
             const SizedBox(height: 8),
             TextField(
               controller: descController,
@@ -922,8 +1138,9 @@ class _LessonList extends StatelessWidget {
         ),
         actions: [
           TextButton(
-              onPressed: () => Navigator.pop(ctx),
-              child: const Text('Cancel')),
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancel'),
+          ),
           ElevatedButton(
             onPressed: () async {
               await AdminService().createLesson(
@@ -936,9 +1153,9 @@ class _LessonList extends StatelessWidget {
               if (ctx.mounted) Navigator.pop(ctx);
             },
             style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF6366F1)),
-            child: const Text('Create',
-                style: TextStyle(color: Colors.white)),
+              backgroundColor: const Color(0xFF6366F1),
+            ),
+            child: const Text('Create', style: TextStyle(color: Colors.white)),
           ),
         ],
       ),
@@ -952,10 +1169,11 @@ class _LessonCard extends StatefulWidget {
   final String courseId;
   final String sectionId;
   final DocumentSnapshot lesson;
-  const _LessonCard(
-      {required this.courseId,
-      required this.sectionId,
-      required this.lesson});
+  const _LessonCard({
+    required this.courseId,
+    required this.sectionId,
+    required this.lesson,
+  });
 
   @override
   State<_LessonCard> createState() => _LessonCardState();
@@ -984,26 +1202,40 @@ class _LessonCardState extends State<_LessonCard> {
             // Title row
             Row(
               children: [
-                const Icon(Icons.play_lesson_outlined,
-                    size: 18, color: Color(0xFF6366F1)),
+                const Icon(
+                  Icons.play_lesson_outlined,
+                  size: 18,
+                  color: Color(0xFF6366F1),
+                ),
                 const SizedBox(width: 8),
                 Expanded(
-                  child: Text(data['title'],
-                      style: const TextStyle(fontWeight: FontWeight.w600)),
+                  child: Text(
+                    data['title'],
+                    style: const TextStyle(fontWeight: FontWeight.w600),
+                  ),
                 ),
                 IconButton(
-                  icon: const Icon(Icons.edit,
-                      size: 16, color: Color(0xFF6366F1)),
+                  icon: const Icon(
+                    Icons.edit,
+                    size: 16,
+                    color: Color(0xFF6366F1),
+                  ),
                   onPressed: () => _showEditDialog(context),
                 ),
                 IconButton(
-                  icon: Icon(Icons.delete,
-                      size: 16, color: Colors.red.shade400),
+                  icon: Icon(
+                    Icons.delete,
+                    size: 16,
+                    color: Colors.red.shade400,
+                  ),
                   onPressed: () => _confirmDelete(
                     context,
                     label: data['title'],
                     onConfirm: () => AdminService().deleteLesson(
-                        widget.courseId, widget.sectionId, widget.lesson.id),
+                      widget.courseId,
+                      widget.sectionId,
+                      widget.lesson.id,
+                    ),
                   ),
                 ),
               ],
@@ -1012,9 +1244,10 @@ class _LessonCardState extends State<_LessonCard> {
             if ((data['description'] ?? '').isNotEmpty)
               Padding(
                 padding: const EdgeInsets.only(left: 26, bottom: 8),
-                child: Text(data['description'],
-                    style: TextStyle(
-                        color: Colors.grey.shade600, fontSize: 13)),
+                child: Text(
+                  data['description'],
+                  style: TextStyle(color: Colors.grey.shade600, fontSize: 13),
+                ),
               ),
 
             // File upload buttons
@@ -1050,7 +1283,8 @@ class _LessonCardState extends State<_LessonCard> {
                 child: Row(
                   children: [
                     const SizedBox(
-                      width: 16, height: 16,
+                      width: 16,
+                      height: 16,
                       child: CircularProgressIndicator(
                         strokeWidth: 2,
                         color: Color(0xFF6366F1),
@@ -1059,7 +1293,10 @@ class _LessonCardState extends State<_LessonCard> {
                     const SizedBox(width: 8),
                     Text(
                       _quizStatus,
-                      style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.grey.shade600,
+                      ),
                     ),
                   ],
                 ),
@@ -1068,7 +1305,10 @@ class _LessonCardState extends State<_LessonCard> {
               GestureDetector(
                 onTap: hasPdf ? () => _generateQuiz(data) : null,
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 6,
+                  ),
                   decoration: BoxDecoration(
                     border: Border.all(
                       color: hasPdf
@@ -1110,118 +1350,121 @@ class _LessonCardState extends State<_LessonCard> {
   }
 
   Future<void> _uploadFile({required bool isPdf}) async {
-  try {
-    final completer = Completer<html.File?>();
+    try {
+      final completer = Completer<html.File?>();
 
-    final input = html.FileUploadInputElement();
-    input.accept = isPdf ? 'application/pdf' : 'video/*';
-    input.click();
+      final input = html.FileUploadInputElement();
+      input.accept = isPdf ? 'application/pdf' : 'video/*';
+      input.click();
 
-    input.onChange.listen((e) {
-      if (input.files!.isEmpty) {
-        completer.complete(null);
-      } else {
-        completer.complete(input.files!.first);
-      }
-    });
+      input.onChange.listen((e) {
+        if (input.files!.isEmpty) {
+          completer.complete(null);
+        } else {
+          completer.complete(input.files!.first);
+        }
+      });
 
-    final htmlFile = await completer.future;
-    if (htmlFile == null) return;
+      final htmlFile = await completer.future;
+      if (htmlFile == null) return;
 
-    final reader = html.FileReader();
-    reader.readAsArrayBuffer(htmlFile);
-    await reader.onLoad.first;
+      final reader = html.FileReader();
+      reader.readAsArrayBuffer(htmlFile);
+      await reader.onLoad.first;
 
-    final bytes = Uint8List.fromList(reader.result as List<int>);
+      final bytes = Uint8List.fromList(reader.result as List<int>);
 
-    if (isPdf) {
-      setState(() => _pdfProgress = 0);
-      final result = await AdminService().uploadPdf(
-        courseId: widget.courseId,
-        sectionId: widget.sectionId,
-        lessonId: widget.lesson.id,
-        fileBytes: bytes,
-        fileName: htmlFile.name,
-        onProgress: (p) => setState(() => _pdfProgress = p),
-      );
-      setState(() => _pdfProgress = null);
-
-      // 👇 Show result
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(result == 'Success' ? '✅ PDF uploaded!' : '❌ $result'),
-            backgroundColor: result == 'Success' ? Colors.green : Colors.red,
-          ),
+      if (isPdf) {
+        setState(() => _pdfProgress = 0);
+        final result = await AdminService().uploadPdf(
+          courseId: widget.courseId,
+          sectionId: widget.sectionId,
+          lessonId: widget.lesson.id,
+          fileBytes: bytes,
+          fileName: htmlFile.name,
+          onProgress: (p) => setState(() => _pdfProgress = p),
         );
-      }
-    } else {
-      setState(() => _videoProgress = 0);
-      final result = await AdminService().uploadVideo(
-        courseId: widget.courseId,
-        sectionId: widget.sectionId,
-        lessonId: widget.lesson.id,
-        fileBytes: bytes,
-        fileName: htmlFile.name,
-        onProgress: (p) => setState(() => _videoProgress = p),
-      );
-      setState(() => _videoProgress = null);
+        setState(() => _pdfProgress = null);
 
-      // 👇 Show result
+        // 👇 Show result
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                result == 'Success' ? '✅ PDF uploaded!' : '❌ $result',
+              ),
+              backgroundColor: result == 'Success' ? Colors.green : Colors.red,
+            ),
+          );
+        }
+      } else {
+        setState(() => _videoProgress = 0);
+        final result = await AdminService().uploadVideo(
+          courseId: widget.courseId,
+          sectionId: widget.sectionId,
+          lessonId: widget.lesson.id,
+          fileBytes: bytes,
+          fileName: htmlFile.name,
+          onProgress: (p) => setState(() => _videoProgress = p),
+        );
+        setState(() => _videoProgress = null);
+
+        // 👇 Show result
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                result == 'Success' ? '✅ Video uploaded!' : '❌ $result',
+              ),
+              backgroundColor: result == 'Success' ? Colors.green : Colors.red,
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      setState(() {
+        _pdfProgress = null;
+        _videoProgress = null;
+      });
+      // 👇 Show the actual error
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(result == 'Success' ? '✅ Video uploaded!' : '❌ $result'),
-            backgroundColor: result == 'Success' ? Colors.green : Colors.red,
+            content: Text('❌ Error: $e'),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 8), // long enough to read
           ),
         );
       }
     }
-  } catch (e) {
+  }
+
+  Future<void> _generateQuiz(Map<String, dynamic> data) async {
     setState(() {
-      _pdfProgress = null;
-      _videoProgress = null;
+      _generatingQuiz = true;
+      _quizStatus = 'Starting...';
     });
-    // 👇 Show the actual error
+
+    final result = await QuizService().generateQuizFromLesson(
+      lessonTitle: data['title'],
+      pdfUrl: data['pdfUrl'],
+      courseId: widget.courseId,
+      onStatus: (status) => setState(() => _quizStatus = status),
+    );
+
+    setState(() => _generatingQuiz = false);
+
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('❌ Error: $e'),
-          backgroundColor: Colors.red,
-          duration: const Duration(seconds: 8), // long enough to read
+          content: Text(
+            result == 'Success' ? '✅ Quiz generated and saved!' : '❌ $result',
+          ),
+          backgroundColor: result == 'Success' ? Colors.green : Colors.red,
         ),
       );
     }
   }
-}
-Future<void> _generateQuiz(Map<String, dynamic> data) async {
-  setState(() {
-    _generatingQuiz = true;
-    _quizStatus = 'Starting...';
-  });
-
-  final result = await QuizService().generateQuizFromLesson(
-    lessonTitle: data['title'],
-    pdfUrl: data['pdfUrl'],
-    courseId: widget.courseId,
-    onStatus: (status) => setState(() => _quizStatus = status),
-  );
-
-  setState(() => _generatingQuiz = false);
-
-  if (mounted) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          result == 'Success'
-              ? '✅ Quiz generated and saved!'
-              : '❌ $result',
-        ),
-        backgroundColor: result == 'Success' ? Colors.green : Colors.red,
-      ),
-    );
-  }
-}
 
   void _showEditDialog(BuildContext context) {
     final data = widget.lesson.data() as Map<String, dynamic>;
@@ -1237,8 +1480,9 @@ Future<void> _generateQuiz(Map<String, dynamic> data) async {
           mainAxisSize: MainAxisSize.min,
           children: [
             TextField(
-                controller: titleController,
-                decoration: const InputDecoration(labelText: 'Title')),
+              controller: titleController,
+              decoration: const InputDecoration(labelText: 'Title'),
+            ),
             const SizedBox(height: 8),
             TextField(
               controller: descController,
@@ -1249,8 +1493,9 @@ Future<void> _generateQuiz(Map<String, dynamic> data) async {
         ),
         actions: [
           TextButton(
-              onPressed: () => Navigator.pop(ctx),
-              child: const Text('Cancel')),
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancel'),
+          ),
           ElevatedButton(
             onPressed: () async {
               await AdminService().updateLesson(
@@ -1263,9 +1508,9 @@ Future<void> _generateQuiz(Map<String, dynamic> data) async {
               if (ctx.mounted) Navigator.pop(ctx);
             },
             style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF6366F1)),
-            child:
-                const Text('Save', style: TextStyle(color: Colors.white)),
+              backgroundColor: const Color(0xFF6366F1),
+            ),
+            child: const Text('Save', style: TextStyle(color: Colors.white)),
           ),
         ],
       ),
@@ -1314,8 +1559,10 @@ class _UploadChip extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(width: 6),
-                  Text('${(progress! * 100).toInt()}%',
-                      style: TextStyle(fontSize: 12, color: color)),
+                  Text(
+                    '${(progress! * 100).toInt()}%',
+                    style: TextStyle(fontSize: 12, color: color),
+                  ),
                 ],
               )
             : Row(
@@ -1323,8 +1570,7 @@ class _UploadChip extends StatelessWidget {
                 children: [
                   Icon(icon, size: 14, color: color),
                   const SizedBox(width: 4),
-                  Text(label,
-                      style: TextStyle(fontSize: 12, color: color)),
+                  Text(label, style: TextStyle(fontSize: 12, color: color)),
                 ],
               ),
       ),
@@ -1334,8 +1580,11 @@ class _UploadChip extends StatelessWidget {
 
 // ─── SHARED HELPERS ─────────────────────────────────────────────────────────
 
-void _confirmDelete(BuildContext context,
-    {required String label, required Future<String> Function() onConfirm}) {
+void _confirmDelete(
+  BuildContext context, {
+  required String label,
+  required Future<String> Function() onConfirm,
+}) {
   showDialog(
     context: context,
     builder: (ctx) => AlertDialog(
@@ -1344,16 +1593,16 @@ void _confirmDelete(BuildContext context,
       content: Text('Delete "$label"? This cannot be undone.'),
       actions: [
         TextButton(
-            onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+          onPressed: () => Navigator.pop(ctx),
+          child: const Text('Cancel'),
+        ),
         ElevatedButton(
           onPressed: () async {
             await onConfirm();
             if (ctx.mounted) Navigator.pop(ctx);
           },
-          style:
-              ElevatedButton.styleFrom(backgroundColor: Colors.red.shade400),
-          child:
-              const Text('Delete', style: TextStyle(color: Colors.white)),
+          style: ElevatedButton.styleFrom(backgroundColor: Colors.red.shade400),
+          child: const Text('Delete', style: TextStyle(color: Colors.white)),
         ),
       ],
     ),

@@ -4,7 +4,7 @@ import 'package:e_learning/firebase_options.dart';
 import 'package:e_learning/screens/admin_panel_screen.dart' hide ElevatedButton;
 import 'package:e_learning/widgets/auth_wrapper.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:flutter/material.dart' ;
+import 'package:flutter/material.dart';
 
 import 'screens/home_screen.dart';
 import 'screens/login_screen.dart';
@@ -15,9 +15,7 @@ import 'services/authentication_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   await AuthService().initialize();
   runApp(const ELearningApp());
 }
@@ -33,7 +31,7 @@ class ELearningApp extends StatelessWidget {
       theme: ThemeData(
         useMaterial3: true,
         colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color(0xFF6366F1),
+          seedColor: const Color(0xFF334155),
           brightness: Brightness.light,
         ),
         appBarTheme: const AppBarTheme(
@@ -44,7 +42,10 @@ class ELearningApp extends StatelessWidget {
         inputDecorationTheme: InputDecorationTheme(
           filled: true,
           fillColor: Colors.grey.shade100,
-          contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 20,
+            vertical: 16,
+          ),
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12),
             borderSide: BorderSide.none,
@@ -58,14 +59,18 @@ class ELearningApp extends StatelessWidget {
         elevatedButtonTheme: ElevatedButtonThemeData(
           style: ElevatedButton.styleFrom(
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
             elevation: 0,
           ),
         ),
         cardTheme: CardThemeData(
-  elevation: 2,
-  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-),
+          elevation: 2,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+        ),
       ),
       home: const AuthWrapper(),
       routes: {

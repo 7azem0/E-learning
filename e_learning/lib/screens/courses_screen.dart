@@ -3,6 +3,7 @@
 import 'package:e_learning/screens/course_detail_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import '../services/enrollment_service.dart';
 import '../widgets/menu.dart';
 
 class CoursesScreen extends StatelessWidget {
@@ -13,7 +14,10 @@ class CoursesScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         elevation: 0,
-        title: const Text("All Courses", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24)),
+        title: const Text(
+          "Courses",
+          style: TextStyle(fontWeight: FontWeight.w700, fontSize: 22),
+        ),
       ),
       drawer: const Menu(),
       body: Padding(
@@ -33,13 +37,17 @@ class CoursesScreen extends StatelessWidget {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(Icons.school_outlined, size: 64, color: Colors.grey.shade400),
+                    Icon(
+                      Icons.school_outlined,
+                      size: 64,
+                      color: Colors.grey.shade400,
+                    ),
                     const SizedBox(height: 16),
                     Text(
                       'No courses available yet',
                       style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                            color: Colors.grey.shade600,
-                          ),
+                        color: Colors.grey.shade600,
+                      ),
                     ),
                   ],
                 ),
@@ -101,14 +109,14 @@ class CourseModel {
 
   factory CourseModel.fromFirestore(DocumentSnapshot doc) {
     final data = doc.data() as Map<String, dynamic>;
-    
+
     // Map icon names to IconData
     final iconName = data['icon'] as String?;
     final icon = _getIconFromName(iconName);
-    
+
     // Map color hex to Color
-    final colorHex = data['color'] as int? ?? 0xFF6366F1;
-    
+    final colorHex = data['color'] as int? ?? 0xFF334155;
+
     return CourseModel(
       id: doc.id,
       name: data['title'] ?? '',
@@ -162,106 +170,54 @@ class ModernCourseCard extends StatefulWidget {
 class _ModernCourseCardState extends State<ModernCourseCard> {
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: widget.onTap,
-      child: Card(
-        elevation: 4,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        child: Container(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(20),
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                widget.course.color.withOpacity(0.8),
-                widget.course.color.withOpacity(0.5),
-              ],
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: widget.course.color.withOpacity(0.3),
-                blurRadius: 15,
-                offset: const Offset(0, 8),
-              ),
-            ],
+    return StreamBuilder<bool>(
+      stream: EnrollmentService().isEnrolled(widget.course.id),
+      builder: (context, snapshot) {
+        final enrolled = snapshot.data ?? false;
+        return Card(
+          elevation: 1,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
           ),
-          child: Stack(
-            children: [
-              // Background Pattern
-              Positioned(
-                right: -30,
-                bottom: -30,
-                child: Container(
-                  width: 120,
-                  height: 120,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: Colors.white.withOpacity(0.1),
+          child: InkWell(
+            borderRadius: BorderRadius.circular(12),
+            onTap: widget.onTap,
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  CircleAvatar(
+                    backgroundColor: widget.course.color.withOpacity(0.12),
+                    child: Icon(widget.course.icon, color: widget.course.color),
                   ),
-                ),
-              ),
-
-              // Content
-              Padding(
-                padding: const EdgeInsets.all(20),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    // Icon
-                    Container(
-                      width: 60,
-                      height: 60,
-                      decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.2),
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      child: Icon(
-                        widget.course.icon,
-                        size: 32,
-                        color: Colors.white,
-                      ),
+                  const Spacer(),
+                  Text(
+                    widget.course.name,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w700,
                     ),
-
-                    // Course Name
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          widget.course.name,
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                            height: 1.2,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                          decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.2),
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                          child: const Text(
-                            "Tap to explore",
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 12,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ),
-                      ],
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    enrolled ? 'Enrolled' : 'Not enrolled',
+                    style: TextStyle(
+                      color: enrolled
+                          ? Colors.green.shade700
+                          : Colors.grey.shade600,
+                      fontWeight: FontWeight.w600,
+                      fontSize: 12,
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
-            ],
+            ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 }

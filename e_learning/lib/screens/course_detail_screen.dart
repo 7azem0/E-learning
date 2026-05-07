@@ -2,6 +2,8 @@
 
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import '../services/announcement_service.dart';
+import '../services/enrollment_service.dart';
 import 'lesson_screen.dart';
 import 'quiz_screen.dart';
 
@@ -22,30 +24,39 @@ class CourseDetailScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         elevation: 0,
-        backgroundColor: courseColor,
-        foregroundColor: Colors.white,
+        backgroundColor: Colors.white,
+        foregroundColor: Colors.black87,
         title: Text(
           courseName,
           style: const TextStyle(fontWeight: FontWeight.bold),
         ),
       ),
-      body: StreamBuilder<QuerySnapshot>(
-        stream: FirebaseFirestore.instance
-            .collection('courses/$courseId/sections')
-            .orderBy('order')
-            .snapshots(),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
+      body: StreamBuilder<bool>(
+        stream: EnrollmentService().isEnrolled(courseId),
+        builder: (context, enrollmentSnapshot) {
+          final enrolled = enrollmentSnapshot.data ?? false;
+          if (enrollmentSnapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
           }
-
-          final sections = snapshot.data?.docs ?? [];
 
           return ListView(
             padding: const EdgeInsets.all(16),
             children: [
-              _CourseQuizSection(courseId: courseId, courseColor: courseColor),
+              _EnrollmentBanner(
+                courseId: courseId,
+                courseColor: courseColor,
+                enrolled: enrolled,
+              ),
               const SizedBox(height: 24),
+              if (enrolled) ...[
+                _Announcements(courseId: courseId, courseColor: courseColor),
+                const SizedBox(height: 24),
+                _CourseQuizSection(
+                  courseId: courseId,
+                  courseColor: courseColor,
+                ),
+                const SizedBox(height: 24),
+              ],
               Text(
                 'Course Content',
                 style: Theme.of(
@@ -53,36 +64,137 @@ class CourseDetailScreen extends StatelessWidget {
                 ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 12),
-              if (sections.isEmpty)
-                Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(
-                        Icons.folder_open_outlined,
-                        size: 64,
-                        color: Colors.grey.shade400,
-                      ),
-                      const SizedBox(height: 16),
-                      Text(
-                        'No sections yet',
-                        style: TextStyle(color: Colors.grey.shade600),
-                      ),
-                    ],
-                  ),
+              if (!enrolled)
+                Text(
+                  'Enroll in this course to access lessons, quizzes, and announcements.',
+                  style: TextStyle(color: Colors.grey.shade600),
                 )
               else
-                ...sections.map((section) {
-                  return _SectionTile(
-                    courseId: courseId,
-                    section: section,
-                    courseColor: courseColor,
-                  );
-                }),
+                StreamBuilder<QuerySnapshot>(
+                  stream: FirebaseFirestore.instance
+                      .collection('courses/$courseId/sections')
+                      .orderBy('order')
+                      .snapshots(),
+                  builder: (context, snapshot) {
+                    final sections = snapshot.data?.docs ?? [];
+                    if (sections.isEmpty) {
+                      return Text(
+                        'No sections yet',
+                        style: TextStyle(color: Colors.grey.shade600),
+                      );
+                    }
+                    return Column(
+                      children: sections
+                          .map(
+                            (section) => _SectionTile(
+                              courseId: courseId,
+                              section: section,
+                              courseColor: courseColor,
+                            ),
+                          )
+                          .toList(),
+                    );
+                  },
+                ),
             ],
           );
         },
       ),
+    );
+  }
+}
+
+class _EnrollmentBanner extends StatelessWidget {
+  final String courseId;
+  final Color courseColor;
+  final bool enrolled;
+
+  const _EnrollmentBanner({
+    required this.courseId,
+    required this.courseColor,
+    required this.enrolled,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      elevation: 1,
+      child: ListTile(
+        leading: CircleAvatar(
+          backgroundColor: courseColor.withOpacity(0.12),
+          child: Icon(enrolled ? Icons.check : Icons.add, color: courseColor),
+        ),
+        title: Text(enrolled ? 'You are enrolled' : 'Enroll in this course'),
+        subtitle: Text(
+          enrolled
+              ? 'Announcements and lessons are available.'
+              : 'Join to access course content.',
+        ),
+        trailing: ElevatedButton(
+          onPressed: () async {
+            final result = enrolled
+                ? await EnrollmentService().leave(courseId)
+                : await EnrollmentService().enroll(courseId);
+            if (context.mounted && result != 'Success') {
+              ScaffoldMessenger.of(
+                context,
+              ).showSnackBar(SnackBar(content: Text(result)));
+            }
+          },
+          style: ElevatedButton.styleFrom(
+            backgroundColor: enrolled ? Colors.grey.shade200 : courseColor,
+            foregroundColor: enrolled ? Colors.black87 : Colors.white,
+          ),
+          child: Text(enrolled ? 'Leave' : 'Enroll'),
+        ),
+      ),
+    );
+  }
+}
+
+class _Announcements extends StatelessWidget {
+  final String courseId;
+  final Color courseColor;
+
+  const _Announcements({required this.courseId, required this.courseColor});
+
+  @override
+  Widget build(BuildContext context) {
+    return StreamBuilder<QuerySnapshot>(
+      stream: AnnouncementService().getCourseAnnouncements(courseId),
+      builder: (context, snapshot) {
+        final announcements = snapshot.data?.docs ?? [];
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Announcements',
+              style: Theme.of(
+                context,
+              ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 12),
+            if (announcements.isEmpty)
+              Text(
+                'No announcements yet',
+                style: TextStyle(color: Colors.grey.shade600),
+              )
+            else
+              ...announcements.map((doc) {
+                final data = doc.data() as Map<String, dynamic>;
+                return Card(
+                  elevation: 1,
+                  margin: const EdgeInsets.only(bottom: 10),
+                  child: ListTile(
+                    leading: Icon(Icons.campaign_outlined, color: courseColor),
+                    title: Text(data['message'] ?? ''),
+                    subtitle: Text(data['authorName'] ?? 'Instructor'),
+                  ),
+                );
+              }),
+          ],
+        );
+      },
     );
   }
 }
