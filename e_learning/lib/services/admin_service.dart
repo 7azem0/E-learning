@@ -49,7 +49,10 @@ class AdminService {
     }
   }
 
-  List<Map<String, dynamic>> _buildDefaultQuizQuestions(String title, int count) {
+  List<Map<String, dynamic>> _buildDefaultQuizQuestions(
+    String title,
+    int count,
+  ) {
     return List.generate(count, (index) {
       final questionIndex = index + 1;
       return {
@@ -106,7 +109,7 @@ class AdminService {
         'title': title,
         'description': description,
         'icon': icon ?? 'school',
-        'color': color ?? 0xFF6366F1,
+        'color': color ?? 0xFF334155,
         'createdAt': Timestamp.now(),
       });
       return 'Success';
@@ -123,13 +126,10 @@ class AdminService {
     int? color,
   }) async {
     try {
-      final updateData = {
-        'title': title,
-        'description': description,
-      };
+      final updateData = {'title': title, 'description': description};
       if (icon != null) updateData['icon'] = icon;
       if (color != null) updateData['color'] = color as String;
-      
+
       await _firestore.collection('courses').doc(courseId).update(updateData);
       return 'Success';
     } catch (e) {
@@ -232,12 +232,12 @@ class AdminService {
       await _firestore
           .collection('courses/$courseId/sections/$sectionId/lessons')
           .add({
-        'title': title,
-        'description': description,
-        'order': order,
-        'pdfUrl': null,
-        'videoUrl': null,
-      });
+            'title': title,
+            'description': description,
+            'order': order,
+            'pdfUrl': null,
+            'videoUrl': null,
+          });
       return 'Success';
     } catch (e) {
       return 'Failed to create lesson';
@@ -263,7 +263,10 @@ class AdminService {
   }
 
   Future<String> deleteLesson(
-      String courseId, String sectionId, String lessonId) async {
+    String courseId,
+    String sectionId,
+    String lessonId,
+  ) async {
     try {
       // Delete files from storage too
       try {
@@ -297,9 +300,10 @@ class AdminService {
     void Function(double progress)? onProgress,
   }) async {
     try {
-      final ref = _storage
-          .ref('courses/$courseId/sections/$sectionId/$lessonId/pdf/$fileName');
-      
+      final ref = _storage.ref(
+        'courses/$courseId/sections/$sectionId/$lessonId/pdf/$fileName',
+      );
+
       final uploadTask = ref.putData(
         fileBytes,
         SettableMetadata(contentType: 'application/pdf'),
@@ -315,7 +319,7 @@ class AdminService {
 
       // Wait for upload to complete
       await uploadTask;
-      
+
       // Get download URL
       final url = await ref.getDownloadURL();
 
@@ -341,9 +345,10 @@ class AdminService {
     void Function(double progress)? onProgress,
   }) async {
     try {
-      final ref = _storage
-          .ref('courses/$courseId/sections/$sectionId/$lessonId/video/$fileName');
-      
+      final ref = _storage.ref(
+        'courses/$courseId/sections/$sectionId/$lessonId/video/$fileName',
+      );
+
       final uploadTask = ref.putData(
         fileBytes,
         SettableMetadata(contentType: 'video/mp4'),
@@ -359,7 +364,7 @@ class AdminService {
 
       // Wait for upload to complete
       await uploadTask;
-      
+
       // Get download URL
       final url = await ref.getDownloadURL();
 

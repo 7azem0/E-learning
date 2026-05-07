@@ -8,86 +8,76 @@ class HomeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final screenHeight = MediaQuery.of(context).size.height;
-
     return Scaffold(
       appBar: AppBar(
         elevation: 0,
-        title: const Text("EduHub", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24)),
+        title: const Text("EduHub"),
+        bottom: const PreferredSize(
+          preferredSize: Size.fromHeight(1),
+          child: Divider(height: 1),
+        ),
       ),
-      drawer: Menu(),
+      drawer: const Menu(),
       body: ListView(
+        padding: const EdgeInsets.all(20),
         children: [
-          // Hero Section with Gradient
           Container(
-            height: screenHeight * 0.35,
             width: double.infinity,
-            padding: const EdgeInsets.all(24),
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [
-                  const Color(0xFF6366F1),
-                  const Color(0xFF8B5CF6),
-                ],
-              ),
+            padding: const EdgeInsets.only(bottom: 24),
+            decoration: const BoxDecoration(
+              border: Border(bottom: BorderSide(color: Color(0xFF111111))),
             ),
             child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Title
+                const Text(
+                  "Computer Science Review",
+                  style: TextStyle(
+                    fontSize: 13,
+                    letterSpacing: 0.8,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                const SizedBox(height: 14),
                 Text(
-                  "Learn Computer\nScience",
-                  style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                        height: 1.2,
-                      ),
+                  "Learn Computer Science With Course Dispatches",
+                  style: Theme.of(context).textTheme.headlineLarge?.copyWith(
+                    color: Colors.black,
+                    fontWeight: FontWeight.bold,
+                    height: 1.05,
+                  ),
                 ),
                 const SizedBox(height: 16),
                 Text(
-                  "Start your journey in programming, AI, and data science.",
+                  "Programming, AI, and data science lessons organized with a quieter editorial rhythm.",
                   style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                        color: Colors.white70,
-                      ),
+                    color: Colors.grey.shade800,
+                    height: 1.4,
+                  ),
                 ),
                 const SizedBox(height: 24),
-                // Button
                 ElevatedButton.icon(
                   onPressed: () {
                     Navigator.pushNamed(context, '/courses');
                   },
                   icon: const Icon(Icons.arrow_forward),
                   label: const Text("Explore Courses"),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.white,
-                    foregroundColor: const Color(0xFF6366F1),
-                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                  ),
                 ),
-              ],
-            ),
-          ),
-
-          const SizedBox(height: 32),
-
-          // Featured Courses Section
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Header
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                ),
-                const SizedBox(height: 16),
               ],
             ),
           ),
           const SizedBox(height: 24),
+          Text(
+            "Today’s syllabus",
+            style: Theme.of(
+              context,
+            ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            "Enroll in courses, read instructor announcements, and continue into lessons from the Courses section.",
+            style: TextStyle(color: Colors.grey.shade700, height: 1.4),
+          ),
         ],
       ),
     );
@@ -120,10 +110,7 @@ class CourseCardItem extends StatelessWidget {
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: [
-              color.withOpacity(0.1),
-              color.withOpacity(0.05),
-            ],
+            colors: [color.withOpacity(0.1), color.withOpacity(0.05)],
           ),
         ),
         child: Padding(
@@ -147,15 +134,15 @@ class CourseCardItem extends StatelessWidget {
                     Text(
                       title,
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.bold,
-                          ),
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                     const SizedBox(height: 4),
                     Text(
                       description,
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: Colors.grey.shade600,
-                          ),
+                        color: Colors.grey.shade600,
+                      ),
                     ),
                   ],
                 ),

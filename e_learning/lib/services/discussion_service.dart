@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../services/authentication_service.dart';
@@ -54,18 +52,6 @@ class DiscussionService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
-  String _nestedCommentsPath({
-    required String courseId,
-    required String sectionId,
-    required String lessonId,
-  }) {
-    return 'courses/$courseId/sections/$sectionId/lessons/$lessonId/comments';
-  }
-
-  String _sharedCommentsPath(String lessonId) {
-    return 'lessonDiscussions/$lessonId/comments';
-  }
-
   /// Add a comment to a lesson
   Future<String> addComment({
     required String courseId,
@@ -81,38 +67,20 @@ class DiscussionService {
       final currentUser = authService.currentUser;
       if (currentUser == null) return 'User data not found';
 
-      final commentRef = _firestore
+      await _firestore
           .collection(
-            _nestedCommentsPath(
-              courseId: courseId,
-              sectionId: sectionId,
-              lessonId: lessonId,
-            ),
+            'courses/$courseId/sections/$sectionId/lessons/$lessonId/comments',
           )
-          .doc();
-      final commentData = {
-        'courseId': courseId,
-        'sectionId': sectionId,
-        'lessonId': lessonId,
-        'userId': user.uid,
-        'userName': currentUser.name.isNotEmpty
-            ? currentUser.name
-            : 'Anonymous',
-        'userEmail': user.email,
-        'isAdmin': currentUser.isAdmin,
-        'text': text.trim(),
-        'createdAt': Timestamp.now(),
-      };
-
-      await commentRef.set(commentData);
-      try {
-        await _firestore
-            .collection(_sharedCommentsPath(lessonId))
-            .doc(commentRef.id)
-            .set(commentData);
-      } catch (_) {
-        // Keep the original lesson-scoped discussion path as the source of truth.
-      }
+          .add({
+            'userId': user.uid,
+            'userName': currentUser.name.isNotEmpty
+                ? currentUser.name
+                : 'Anonymous',
+            'userEmail': user.email,
+            'isAdmin': currentUser.isAdmin,
+            'text': text.trim(),
+            'createdAt': Timestamp.now(),
+          });
 
       return 'Success';
     } catch (e) {
@@ -126,62 +94,17 @@ class DiscussionService {
     required String sectionId,
     required String lessonId,
   }) {
-    final controller = StreamController<List<LessonComment>>();
-    final nestedComments = <String, LessonComment>{};
-    final sharedComments = <String, LessonComment>{};
-
-    void emitComments() {
-      final commentsById = <String, LessonComment>{
-        ...nestedComments,
-        ...sharedComments,
-      };
-      final comments = commentsById.values.toList()
-        ..sort((a, b) => a.createdAt.toDate().compareTo(b.createdAt.toDate()));
-      controller.add(comments);
-    }
-
-    final nestedSubscription = _firestore
+    return _firestore
         .collection(
-          _nestedCommentsPath(
-            courseId: courseId,
-            sectionId: sectionId,
-            lessonId: lessonId,
-          ),
+          'courses/$courseId/sections/$sectionId/lessons/$lessonId/comments',
         )
         .orderBy('createdAt', descending: false)
         .snapshots()
-        .listen((snapshot) {
-          nestedComments
-            ..clear()
-            ..addEntries(
-              snapshot.docs.map(
-                (doc) => MapEntry(doc.id, LessonComment.fromFirestore(doc)),
-              ),
-            );
-          emitComments();
-        }, onError: (_) => emitComments());
-
-    final sharedSubscription = _firestore
-        .collection(_sharedCommentsPath(lessonId))
-        .orderBy('createdAt', descending: false)
-        .snapshots()
-        .listen((snapshot) {
-          sharedComments
-            ..clear()
-            ..addEntries(
-              snapshot.docs.map(
-                (doc) => MapEntry(doc.id, LessonComment.fromFirestore(doc)),
-              ),
-            );
-          emitComments();
-        }, onError: (_) => emitComments());
-
-    controller.onCancel = () async {
-      await nestedSubscription.cancel();
-      await sharedSubscription.cancel();
-    };
-
-    return controller.stream;
+        .map(
+          (snapshot) => snapshot.docs
+              .map((doc) => LessonComment.fromFirestore(doc))
+              .toList(),
+        );
   }
 
   /// Delete a comment (only by the author or admin)
@@ -198,36 +121,19 @@ class DiscussionService {
 
       final commentRef = _firestore
           .collection(
-            _nestedCommentsPath(
-              courseId: courseId,
-              sectionId: sectionId,
-              lessonId: lessonId,
-            ),
+            'courses/$courseId/sections/$sectionId/lessons/$lessonId/comments',
           )
           .doc(commentId);
       final comment = await commentRef.get();
-      final sharedCommentRef = _firestore
-          .collection(_sharedCommentsPath(lessonId))
-          .doc(commentId);
-      final sharedComment = await sharedCommentRef.get();
-      if (!comment.exists && !sharedComment.exists) return 'Comment not found';
+      if (!comment.exists) return 'Comment not found';
 
-      final data =
-          (comment.exists ? comment.data() : sharedComment.data())
-              as Map<String, dynamic>;
+      final data = comment.data() as Map<String, dynamic>;
       final isAuthor = data['userId'] == user.uid;
       if (!isAuthor && !currentUser.isAdmin) {
         return 'You can only delete your own comments';
       }
 
-      if (comment.exists) {
-        await commentRef.delete();
-      }
-      if (sharedComment.exists) {
-        try {
-          await sharedCommentRef.delete();
-        } catch (_) {}
-      }
+      await commentRef.delete();
       return 'Success';
     } catch (e) {
       return 'Failed to delete comment: $e';
