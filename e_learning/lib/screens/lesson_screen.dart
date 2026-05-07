@@ -97,36 +97,18 @@ class _LessonScreenState extends State<LessonScreen>
                 style: TextStyle(color: Colors.grey.shade700),
               ),
             ),
-          Expanded(
-            child: _tabs.length == 1
-                ? _buildContent(_tabs[0].text!)
-                : TabBarView(
-                    controller: _tabController,
-                    children: _tabs.map((t) => _buildContent(t.text!)).toList(),
-                  ),
-          ),
+          Expanded(child: kIsWeb ? _buildWebContent() : _buildMobileContent()),
         ],
       ),
     );
   }
 
-  Widget _buildContent(String type) {
-    if (kIsWeb) return _buildWebView(type);
-
-    if (type == 'Video' && widget.videoUrl != null) {
-      return _MobileVideoPlayer(videoUrl: widget.videoUrl!);
-    } else if (type == 'PDF' && widget.pdfUrl != null) {
-      return _MobilePdfViewer(pdfUrl: widget.pdfUrl!);
-    } else if (type == 'Discussion') {
-      return _LessonDiscussion(
-        courseId: widget.courseId,
-        sectionId: widget.sectionId,
-        lessonId: widget.lessonId,
-        courseColor: widget.courseColor,
-      );
-    }
-
-    return _NoLessonContent();
+  Widget _buildWebContent() {
+    if (_tabs.length == 1) return _buildWebView(_tabs[0].text!);
+    return TabBarView(
+      controller: _tabController,
+      children: _tabs.map((t) => _buildWebView(t.text!)).toList(),
+    );
   }
 
   Widget _buildWebView(String type) {
@@ -144,110 +126,29 @@ class _LessonScreenState extends State<LessonScreen>
     }
     return _NoLessonContent();
   }
-}
 
-class _MobileVideoPlayer extends StatefulWidget {
-  final String videoUrl;
-
-  const _MobileVideoPlayer({required this.videoUrl});
-
-  @override
-  State<_MobileVideoPlayer> createState() => _MobileVideoPlayerState();
-}
-
-class _MobileVideoPlayerState extends State<_MobileVideoPlayer> {
-  late final VideoPlayerController _videoController;
-  ChewieController? _chewieController;
-  late final Future<void> _initializeVideo;
-
-  @override
-  void initState() {
-    super.initState();
-    _videoController = VideoPlayerController.networkUrl(
-      Uri.parse(widget.videoUrl),
-    );
-    _initializeVideo = _videoController.initialize().then((_) {
-      if (!mounted) return;
-      setState(() {
-        _chewieController = ChewieController(
-          videoPlayerController: _videoController,
-          autoPlay: false,
-          looping: false,
-        );
-      });
-    });
-  }
-
-  @override
-  void dispose() {
-    _chewieController?.dispose();
-    _videoController.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return FutureBuilder<void>(
-      future: _initializeVideo,
-      builder: (context, snapshot) {
-        if (snapshot.connectionState != ConnectionState.done) {
-          return const Center(child: CircularProgressIndicator());
-        }
-        if (snapshot.hasError || _chewieController == null) {
-          return _LessonError(message: 'Unable to load the video.');
-        }
-        return Chewie(controller: _chewieController!);
-      },
+  Widget _buildMobileContent() {
+    if (_tabs.length == 1) return _buildMobileView(_tabs[0].text!);
+    return TabBarView(
+      controller: _tabController,
+      children: _tabs.map((t) => _buildMobileView(t.text!)).toList(),
     );
   }
-}
 
-class _MobilePdfViewer extends StatefulWidget {
-  final String pdfUrl;
-
-  const _MobilePdfViewer({required this.pdfUrl});
-
-  @override
-  State<_MobilePdfViewer> createState() => _MobilePdfViewerState();
-}
-
-class _MobilePdfViewerState extends State<_MobilePdfViewer> {
-  late final Future<String> _pdfPath;
-
-  @override
-  void initState() {
-    super.initState();
-    _pdfPath = _downloadPdf(widget.pdfUrl);
-  }
-
-  Future<String> _downloadPdf(String url) async {
-    final directory = await getTemporaryDirectory();
-    final file = File('${directory.path}/lesson_${url.hashCode}.pdf');
-    if (await file.exists()) return file.path;
-
-    final response = await http.get(Uri.parse(url));
-    if (response.statusCode < 200 || response.statusCode >= 300) {
-      throw Exception('Unable to download PDF');
+  Widget _buildMobileView(String type) {
+    if (type == 'Video' && widget.videoUrl != null) {
+      return _VideoPlayerWidget(url: widget.videoUrl!);
+    } else if (type == 'PDF' && widget.pdfUrl != null) {
+      return _PdfViewerWidget(url: widget.pdfUrl!);
+    } else if (type == 'Discussion') {
+      return _LessonDiscussion(
+        courseId: widget.courseId,
+        sectionId: widget.sectionId,
+        lessonId: widget.lessonId,
+        courseColor: widget.courseColor,
+      );
     }
-
-    await file.writeAsBytes(response.bodyBytes, flush: true);
-    return file.path;
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return FutureBuilder<String>(
-      future: _pdfPath,
-      builder: (context, snapshot) {
-        if (snapshot.connectionState != ConnectionState.done) {
-          return const Center(child: CircularProgressIndicator());
-        }
-        if (snapshot.hasError || snapshot.data == null) {
-          return _LessonError(message: 'Unable to load the PDF.');
-        }
-        return PDFView(filePath: snapshot.data!);
-      },
-    );
+    return _NoLessonContent();
   }
 }
 
@@ -270,23 +171,138 @@ class _NoLessonContent extends StatelessWidget {
   }
 }
 
-class _LessonError extends StatelessWidget {
-  final String message;
+class _PdfViewerWidget extends StatefulWidget {
+  final String url;
 
-  const _LessonError({required this.message});
+  const _PdfViewerWidget({required this.url});
+
+  @override
+  State<_PdfViewerWidget> createState() => _PdfViewerWidgetState();
+}
+
+class _PdfViewerWidgetState extends State<_PdfViewerWidget> {
+  bool _isLoading = true;
+  String? _localPath;
+  String? _error;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadPdf();
+  }
+
+  Future<void> _loadPdf() async {
+    try {
+      final response = await http.get(Uri.parse(widget.url));
+      if (response.statusCode == 200) {
+        final dir = await getTemporaryDirectory();
+        final file = File('${dir.path}/lesson.pdf');
+        await file.writeAsBytes(response.bodyBytes);
+        if (!mounted) return;
+        setState(() {
+          _localPath = file.path;
+          _isLoading = false;
+        });
+      } else {
+        if (!mounted) return;
+        setState(() {
+          _error = 'Failed to load PDF';
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _error = 'Error: $e';
+        _isLoading = false;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Text(
-          message,
-          textAlign: TextAlign.center,
-          style: TextStyle(color: Colors.red.shade400),
-        ),
-      ),
+    if (_isLoading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+    if (_error != null) {
+      return Center(child: Text(_error!));
+    }
+    return PDFView(
+      filePath: _localPath!,
+      enableSwipe: true,
+      swipeHorizontal: false,
+      autoSpacing: true,
+      pageFling: true,
     );
+  }
+}
+
+class _VideoPlayerWidget extends StatefulWidget {
+  final String url;
+
+  const _VideoPlayerWidget({required this.url});
+
+  @override
+  State<_VideoPlayerWidget> createState() => _VideoPlayerWidgetState();
+}
+
+class _VideoPlayerWidgetState extends State<_VideoPlayerWidget> {
+  late VideoPlayerController _videoController;
+  ChewieController? _chewieController;
+  bool _isLoading = true;
+  bool _hasVideoController = false;
+  String? _error;
+
+  @override
+  void initState() {
+    super.initState();
+    _initPlayer();
+  }
+
+  Future<void> _initPlayer() async {
+    try {
+      _videoController = VideoPlayerController.networkUrl(
+        Uri.parse(widget.url),
+      );
+      _hasVideoController = true;
+      await _videoController.initialize();
+      _chewieController = ChewieController(
+        videoPlayerController: _videoController,
+        autoPlay: false,
+        looping: false,
+        allowFullScreen: true,
+        allowMuting: true,
+        showControls: true,
+      );
+      if (!mounted) return;
+      setState(() => _isLoading = false);
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _error = 'Error loading video: $e';
+        _isLoading = false;
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    if (_hasVideoController) {
+      _videoController.dispose();
+    }
+    _chewieController?.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_isLoading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+    if (_error != null) {
+      return Center(child: Text(_error!));
+    }
+    return Chewie(controller: _chewieController!);
   }
 }
 
