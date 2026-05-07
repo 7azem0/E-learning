@@ -41,6 +41,7 @@ class User {
       'name': name,
       'email': email,
       'avatarUrl': avatarUrl,
+      'isAdmin': isAdmin,
       'createdAt': Timestamp.fromDate(createdAt),
       'updatedAt': Timestamp.now(),
     };
@@ -173,6 +174,7 @@ class AuthService {
         email: email.trim(),
         avatarUrl: avatarUrl,
         createdAt: _currentUser?.createdAt ?? DateTime.now(),
+        isAdmin: _currentUser?.isAdmin ?? false,
       );
 
       await _firestore

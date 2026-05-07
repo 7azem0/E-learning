@@ -208,6 +208,9 @@ class _LessonList extends StatelessWidget {
                   context,
                   MaterialPageRoute(
                     builder: (_) => LessonScreen(
+                      courseId: courseId,
+                      sectionId: sectionId,
+                      lessonId: lesson.id,
                       title: data['title'] ?? '',
                       description: data['description'] ?? '',
                       pdfUrl: data['pdfUrl'],
