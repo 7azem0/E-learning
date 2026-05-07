@@ -15,7 +15,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final TextEditingController nameController = TextEditingController();
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
-  final TextEditingController confirmPasswordController = TextEditingController();
+  final TextEditingController confirmPasswordController =
+      TextEditingController();
   bool _isLoading = false;
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
@@ -57,54 +58,33 @@ class _RegisterScreenState extends State<RegisterScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              const Color(0xFF6366F1),
-              const Color(0xFF8B5CF6),
-            ],
-          ),
-        ),
+        color: const Color(0xFFFAFAF8),
         child: SafeArea(
           child: SingleChildScrollView(
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
               child: Column(
                 children: [
-                  // Logo/Header
-                  Container(
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(20),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.1),
-                          blurRadius: 20,
-                          offset: const Offset(0, 10),
-                        ),
-                      ],
-                    ),
-                    padding: const EdgeInsets.all(20),
-                    child: const Icon(Icons.school, size: 48, color: Color(0xFF6366F1)),
+                  const Text(
+                    "EduHub",
+                    style: TextStyle(fontSize: 42, fontWeight: FontWeight.w800),
                   ),
-                  const SizedBox(height: 24),
+                  const Divider(height: 32, color: Colors.black),
 
                   // Title
                   Text(
                     "Create Account",
                     style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                        ),
+                      color: Colors.black,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                   const SizedBox(height: 8),
                   Text(
                     "Start your learning journey today",
-                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                          color: Colors.white70,
-                        ),
+                    style: Theme.of(
+                      context,
+                    ).textTheme.bodyLarge?.copyWith(color: Colors.black54),
                   ),
                   const SizedBox(height: 32),
 
@@ -122,7 +102,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             prefixIcon: const Icon(Icons.person_outline),
                             hintText: 'Naaaaaame',
                           ),
-                          validator: (value) => value!.isEmpty ? 'Please enter your full name' : null,
+                          validator: (value) => value!.isEmpty
+                              ? 'Please enter your full name'
+                              : null,
                         ),
                         const SizedBox(height: 16),
 
@@ -137,8 +119,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             hintText: 'you@example.com',
                           ),
                           validator: (value) {
-                            if (value == null || value.isEmpty) return 'Please enter your email';
-                            if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w]{2,4}$').hasMatch(value)) {
+                            if (value == null || value.isEmpty)
+                              return 'Please enter your email';
+                            if (!RegExp(
+                              r'^[\w-\.]+@([\w-]+\.)+[\w]{2,4}$',
+                            ).hasMatch(value)) {
                               return 'Please enter a wild email';
                             }
                             return null;
@@ -156,17 +141,23 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             prefixIcon: const Icon(Icons.lock_outline),
                             suffixIcon: IconButton(
                               icon: Icon(
-                                _obscurePassword ? Icons.visibility_off : Icons.visibility,
+                                _obscurePassword
+                                    ? Icons.visibility_off
+                                    : Icons.visibility,
                               ),
                               onPressed: () {
-                                setState(() => _obscurePassword = !_obscurePassword);
+                                setState(
+                                  () => _obscurePassword = !_obscurePassword,
+                                );
                               },
                             ),
                             helperText: 'At least 6 characters',
                           ),
                           validator: (value) {
-                            if (value == null || value.isEmpty) return 'Please enter your password';
-                            if (value.length < 6) return 'Password must be at least 6 characters';
+                            if (value == null || value.isEmpty)
+                              return 'Please enter your password';
+                            if (value.length < 6)
+                              return 'Password must be at least 6 characters';
                             return null;
                           },
                         ),
@@ -182,10 +173,15 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             prefixIcon: const Icon(Icons.lock_outline),
                             suffixIcon: IconButton(
                               icon: Icon(
-                                _obscureConfirmPassword ? Icons.visibility_off : Icons.visibility,
+                                _obscureConfirmPassword
+                                    ? Icons.visibility_off
+                                    : Icons.visibility,
                               ),
                               onPressed: () {
-                                setState(() => _obscureConfirmPassword = !_obscureConfirmPassword);
+                                setState(
+                                  () => _obscureConfirmPassword =
+                                      !_obscureConfirmPassword,
+                                );
                               },
                             ),
                           ),
@@ -205,25 +201,36 @@ class _RegisterScreenState extends State<RegisterScreen> {
                               ? const SizedBox(
                                   height: 50,
                                   child: Center(
-                                    child: CircularProgressIndicator(color: Colors.white),
+                                    child: CircularProgressIndicator(
+                                      color: Colors.black,
+                                    ),
                                   ),
                                 )
                               : ElevatedButton(
                                   onPressed: () async {
                                     if (_formKey.currentState!.validate()) {
                                       setState(() => _isLoading = true);
-                                      String result = await AuthService().registerUser(
-                                        name: nameController.text.trim(),
-                                        email: emailController.text.trim(),
-                                        password: passwordController.text.trim(),
-                                      );
+                                      String result = await AuthService()
+                                          .registerUser(
+                                            name: nameController.text.trim(),
+                                            email: emailController.text.trim(),
+                                            password: passwordController.text
+                                                .trim(),
+                                          );
                                       setState(() => _isLoading = false);
 
                                       if (result == 'Success') {
-                                        _showSuccessSnackbar('Registration successful!');
-                                        await Future.delayed(const Duration(seconds: 1));
+                                        _showSuccessSnackbar(
+                                          'Registration successful!',
+                                        );
+                                        await Future.delayed(
+                                          const Duration(seconds: 1),
+                                        );
                                         if (mounted) {
-                                          Navigator.pushReplacementNamed(context, '/login');
+                                          Navigator.pushReplacementNamed(
+                                            context,
+                                            '/login',
+                                          );
                                         }
                                       } else {
                                         _showErrorSnackbar(result);
@@ -231,13 +238,18 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                     }
                                   },
                                   style: ElevatedButton.styleFrom(
-                                    padding: const EdgeInsets.symmetric(vertical: 14),
-                                    backgroundColor: Colors.white,
-                                    foregroundColor: const Color(0xFF6366F1),
+                                    padding: const EdgeInsets.symmetric(
+                                      vertical: 14,
+                                    ),
+                                    backgroundColor: Colors.black,
+                                    foregroundColor: Colors.white,
                                   ),
                                   child: const Text(
                                     'Create Account',
-                                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold,
+                                    ),
                                   ),
                                 ),
                         ),
@@ -252,7 +264,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     children: [
                       Text(
                         "Already have an account? ",
-                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.white70),
+                        style: Theme.of(
+                          context,
+                        ).textTheme.bodyMedium?.copyWith(color: Colors.black54),
                       ),
                       GestureDetector(
                         onTap: () {
@@ -260,9 +274,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         },
                         child: Text(
                           "Sign In",
-                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                color: Colors.white,
+                          style: Theme.of(context).textTheme.bodyMedium
+                              ?.copyWith(
+                                color: Colors.black,
                                 fontWeight: FontWeight.bold,
+                                decoration: TextDecoration.underline,
                               ),
                         ),
                       ),

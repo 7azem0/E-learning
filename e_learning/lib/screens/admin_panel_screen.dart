@@ -20,7 +20,7 @@ class AdminPanelScreen extends StatelessWidget {
           'Instructor Panel',
           style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24),
         ),
-        backgroundColor: const Color(0xFF334155),
+        backgroundColor: const Color(0xFF111111),
         foregroundColor: Colors.white,
         elevation: 0,
       ),
@@ -37,7 +37,7 @@ class AdminPanelScreen extends StatelessWidget {
               // Add Course Button with modern design
               Container(
                 decoration: BoxDecoration(
-                  color: const Color(0xFF334155),
+                  color: const Color(0xFF111111),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Material(
@@ -72,7 +72,7 @@ class AdminPanelScreen extends StatelessWidget {
               const SizedBox(height: 16),
               Container(
                 decoration: BoxDecoration(
-                  color: const Color(0xFF475569),
+                  color: const Color(0xFF333333),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Material(
@@ -260,7 +260,7 @@ class AdminPanelScreen extends StatelessWidget {
       text: course?['description'] ?? '',
     );
     String? selectedIcon = course?['icon'] ?? 'school';
-    int? selectedColor = course?['color'] ?? 0xFF6366F1;
+    int? selectedColor = course?['color'] ?? 0xFF111111;
 
     showDialog(
       context: context,
@@ -329,18 +329,18 @@ class AdminPanelScreen extends StatelessWidget {
                             decoration: BoxDecoration(
                               border: Border.all(
                                 color: isSelected
-                                    ? const Color(0xFF6366F1)
+                                    ? const Color(0xFF111111)
                                     : Colors.grey,
                                 width: isSelected ? 2 : 1,
                               ),
                               borderRadius: BorderRadius.circular(12),
                               color: isSelected
-                                  ? const Color(0xFF6366F1).withOpacity(0.1)
+                                  ? const Color(0xFF111111).withOpacity(0.1)
                                   : Colors.transparent,
                             ),
                             child: Icon(
                               _getIconFromName(icon),
-                              color: const Color(0xFF6366F1),
+                              color: const Color(0xFF111111),
                             ),
                           ),
                         );
@@ -358,8 +358,8 @@ class AdminPanelScreen extends StatelessWidget {
                   spacing: 8,
                   children:
                       [
-                        0xFF6366F1,
-                        0xFF8B5CF6,
+                        0xFF111111,
+                        0xFF525252,
                         0xFF06B6D4,
                         0xFF10B981,
                         0xFFF59E0B,
@@ -429,7 +429,7 @@ class AdminPanelScreen extends StatelessWidget {
             },
             icon: const Icon(Icons.check),
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF6366F1),
+              backgroundColor: const Color(0xFF111111),
               foregroundColor: Colors.white,
             ),
             label: Text(course == null ? 'Create' : 'Save'),
@@ -507,7 +507,7 @@ class AdminPanelScreen extends StatelessWidget {
                     }
                   },
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF334155),
+              backgroundColor: const Color(0xFF111111),
               foregroundColor: Colors.white,
             ),
             child: const Text('Publish'),
@@ -552,7 +552,7 @@ class _CourseCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final courseData = course.data() as Map<String, dynamic>;
-    final colorHex = courseData['color'] as int? ?? 0xFF6366F1;
+    final colorHex = courseData['color'] as int? ?? 0xFF111111;
     final iconName = courseData['icon'] as String? ?? 'school';
 
     return Card(
@@ -656,7 +656,7 @@ class _CourseCard extends StatelessWidget {
       text: course?['description'] ?? '',
     );
     String? selectedIcon = course?['icon'] ?? 'school';
-    int? selectedColor = course?['color'] ?? 0xFF6366F1;
+    int? selectedColor = course?['color'] ?? 0xFF111111;
 
     showDialog(
       context: context,
@@ -725,18 +725,18 @@ class _CourseCard extends StatelessWidget {
                             decoration: BoxDecoration(
                               border: Border.all(
                                 color: isSelected
-                                    ? const Color(0xFF6366F1)
+                                    ? const Color(0xFF111111)
                                     : Colors.grey,
                                 width: isSelected ? 2 : 1,
                               ),
                               borderRadius: BorderRadius.circular(12),
                               color: isSelected
-                                  ? const Color(0xFF6366F1).withOpacity(0.1)
+                                  ? const Color(0xFF111111).withOpacity(0.1)
                                   : Colors.transparent,
                             ),
                             child: Icon(
                               _getIconFromName(icon),
-                              color: const Color(0xFF6366F1),
+                              color: const Color(0xFF111111),
                             ),
                           ),
                         );
@@ -754,8 +754,8 @@ class _CourseCard extends StatelessWidget {
                   spacing: 8,
                   children:
                       [
-                        0xFF6366F1,
-                        0xFF8B5CF6,
+                        0xFF111111,
+                        0xFF525252,
                         0xFF06B6D4,
                         0xFF10B981,
                         0xFFF59E0B,
@@ -825,7 +825,7 @@ class _CourseCard extends StatelessWidget {
             },
             icon: const Icon(Icons.check),
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF6366F1),
+              backgroundColor: const Color(0xFF111111),
               foregroundColor: Colors.white,
             ),
             label: Text(course == null ? 'Create' : 'Save'),
@@ -915,13 +915,13 @@ class _SectionList extends StatelessWidget {
               OutlinedButton.icon(
                 onPressed: () =>
                     _showSectionDialog(context, order: sections.length),
-                icon: const Icon(Icons.add, size: 18, color: Color(0xFF6366F1)),
+                icon: const Icon(Icons.add, size: 18, color: Color(0xFF111111)),
                 label: const Text(
                   'Add Section',
-                  style: TextStyle(color: Color(0xFF6366F1)),
+                  style: TextStyle(color: Color(0xFF111111)),
                 ),
                 style: OutlinedButton.styleFrom(
-                  side: const BorderSide(color: Color(0xFF6366F1)),
+                  side: const BorderSide(color: Color(0xFF111111)),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(10),
                   ),
@@ -975,7 +975,7 @@ class _SectionList extends StatelessWidget {
               if (ctx.mounted) Navigator.pop(ctx);
             },
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF6366F1),
+              backgroundColor: const Color(0xFF111111),
             ),
             child: Text(
               section == null ? 'Create' : 'Save',
@@ -1010,7 +1010,7 @@ class _SectionCard extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             IconButton(
-              icon: const Icon(Icons.edit, size: 18, color: Color(0xFF6366F1)),
+              icon: const Icon(Icons.edit, size: 18, color: Color(0xFF111111)),
               onPressed: () => _showSectionDialog(context),
             ),
             IconButton(
@@ -1055,7 +1055,7 @@ class _SectionCard extends StatelessWidget {
               if (ctx.mounted) Navigator.pop(ctx);
             },
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF6366F1),
+              backgroundColor: const Color(0xFF111111),
             ),
             child: const Text('Save', style: TextStyle(color: Colors.white)),
           ),
@@ -1093,13 +1093,13 @@ class _LessonList extends StatelessWidget {
               OutlinedButton.icon(
                 onPressed: () =>
                     _showLessonDialog(context, order: lessons.length),
-                icon: const Icon(Icons.add, size: 16, color: Color(0xFF6366F1)),
+                icon: const Icon(Icons.add, size: 16, color: Color(0xFF111111)),
                 label: const Text(
                   'Add Lesson',
-                  style: TextStyle(color: Color(0xFF6366F1), fontSize: 13),
+                  style: TextStyle(color: Color(0xFF111111), fontSize: 13),
                 ),
                 style: OutlinedButton.styleFrom(
-                  side: const BorderSide(color: Color(0xFF6366F1)),
+                  side: const BorderSide(color: Color(0xFF111111)),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(10),
                   ),
@@ -1153,7 +1153,7 @@ class _LessonList extends StatelessWidget {
               if (ctx.mounted) Navigator.pop(ctx);
             },
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF6366F1),
+              backgroundColor: const Color(0xFF111111),
             ),
             child: const Text('Create', style: TextStyle(color: Colors.white)),
           ),
@@ -1205,7 +1205,7 @@ class _LessonCardState extends State<_LessonCard> {
                 const Icon(
                   Icons.play_lesson_outlined,
                   size: 18,
-                  color: Color(0xFF6366F1),
+                  color: Color(0xFF111111),
                 ),
                 const SizedBox(width: 8),
                 Expanded(
@@ -1218,7 +1218,7 @@ class _LessonCardState extends State<_LessonCard> {
                   icon: const Icon(
                     Icons.edit,
                     size: 16,
-                    color: Color(0xFF6366F1),
+                    color: Color(0xFF111111),
                   ),
                   onPressed: () => _showEditDialog(context),
                 ),
@@ -1258,7 +1258,7 @@ class _LessonCardState extends State<_LessonCard> {
                 _UploadChip(
                   icon: Icons.picture_as_pdf,
                   label: hasPdf ? 'PDF ✓' : 'Upload PDF',
-                  color: hasPdf ? Colors.green : const Color(0xFF6366F1),
+                  color: hasPdf ? Colors.green : const Color(0xFF111111),
                   progress: _pdfProgress,
                   onTap: () => _uploadFile(isPdf: true),
                 ),
@@ -1266,7 +1266,7 @@ class _LessonCardState extends State<_LessonCard> {
                 _UploadChip(
                   icon: Icons.video_library_outlined,
                   label: hasVideo ? 'Video ✓' : 'Upload Video',
-                  color: hasVideo ? Colors.green : const Color(0xFF6366F1),
+                  color: hasVideo ? Colors.green : const Color(0xFF111111),
                   progress: _videoProgress,
                   onTap: () => _uploadFile(isPdf: false),
                 ),
@@ -1287,7 +1287,7 @@ class _LessonCardState extends State<_LessonCard> {
                       height: 16,
                       child: CircularProgressIndicator(
                         strokeWidth: 2,
-                        color: Color(0xFF6366F1),
+                        color: Color(0xFF111111),
                       ),
                     ),
                     const SizedBox(width: 8),
@@ -1312,7 +1312,7 @@ class _LessonCardState extends State<_LessonCard> {
                   decoration: BoxDecoration(
                     border: Border.all(
                       color: hasPdf
-                          ? const Color(0xFF8B5CF6)
+                          ? const Color(0xFF525252)
                           : Colors.grey.shade300,
                     ),
                     borderRadius: BorderRadius.circular(20),
@@ -1324,7 +1324,7 @@ class _LessonCardState extends State<_LessonCard> {
                         Icons.auto_awesome,
                         size: 14,
                         color: hasPdf
-                            ? const Color(0xFF8B5CF6)
+                            ? const Color(0xFF525252)
                             : Colors.grey.shade400,
                       ),
                       const SizedBox(width: 4),
@@ -1335,7 +1335,7 @@ class _LessonCardState extends State<_LessonCard> {
                         style: TextStyle(
                           fontSize: 12,
                           color: hasPdf
-                              ? const Color(0xFF8B5CF6)
+                              ? const Color(0xFF525252)
                               : Colors.grey.shade400,
                         ),
                       ),
@@ -1508,7 +1508,7 @@ class _LessonCardState extends State<_LessonCard> {
               if (ctx.mounted) Navigator.pop(ctx);
             },
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF6366F1),
+              backgroundColor: const Color(0xFF111111),
             ),
             child: const Text('Save', style: TextStyle(color: Colors.white)),
           ),

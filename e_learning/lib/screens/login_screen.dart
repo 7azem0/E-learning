@@ -52,55 +52,34 @@ class _LoginScreenState extends State<LoginScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              const Color(0xFF6366F1),
-              const Color(0xFF8B5CF6),
-            ],
-          ),
-        ),
+        color: const Color(0xFFFAFAF8),
         child: SafeArea(
           child: SingleChildScrollView(
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 40),
               child: Column(
                 children: [
-                  // Logo/Header
                   const SizedBox(height: 20),
-                  Container(
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(20),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.1),
-                          blurRadius: 20,
-                          offset: const Offset(0, 10),
-                        ),
-                      ],
-                    ),
-                    padding: const EdgeInsets.all(20),
-                    child: const Icon(Icons.school, size: 48, color: Color(0xFF6366F1)),
+                  const Text(
+                    "EduHub",
+                    style: TextStyle(fontSize: 42, fontWeight: FontWeight.w800),
                   ),
-                  const SizedBox(height: 32),
+                  const Divider(height: 32, color: Colors.black),
 
                   // Title
                   Text(
                     "Welcome Back",
                     style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                        ),
+                      color: Colors.black,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                   const SizedBox(height: 8),
                   Text(
                     "Sign in to continue learning",
-                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                          color: Colors.white70,
-                        ),
+                    style: Theme.of(
+                      context,
+                    ).textTheme.bodyLarge?.copyWith(color: Colors.black54),
                   ),
                   const SizedBox(height: 40),
 
@@ -120,8 +99,11 @@ class _LoginScreenState extends State<LoginScreen> {
                             hintText: 'you@example.com',
                           ),
                           validator: (value) {
-                            if (value == null || value.isEmpty) return 'Please enter your email';
-                            if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w]{2,4}$').hasMatch(value)) {
+                            if (value == null || value.isEmpty)
+                              return 'Please enter your email';
+                            if (!RegExp(
+                              r'^[\w-\.]+@([\w-]+\.)+[\w]{2,4}$',
+                            ).hasMatch(value)) {
                               return 'Please enter a valid email';
                             }
                             return null;
@@ -139,16 +121,22 @@ class _LoginScreenState extends State<LoginScreen> {
                             prefixIcon: const Icon(Icons.lock_outline),
                             suffixIcon: IconButton(
                               icon: Icon(
-                                _obscurePassword ? Icons.visibility_off : Icons.visibility,
+                                _obscurePassword
+                                    ? Icons.visibility_off
+                                    : Icons.visibility,
                               ),
                               onPressed: () {
-                                setState(() => _obscurePassword = !_obscurePassword);
+                                setState(
+                                  () => _obscurePassword = !_obscurePassword,
+                                );
                               },
                             ),
                           ),
                           validator: (value) {
-                            if (value == null || value.isEmpty) return 'Please enter your password';
-                            if (value.length < 6) return 'Password must be at least 6 characters';
+                            if (value == null || value.isEmpty)
+                              return 'Please enter your password';
+                            if (value.length < 6)
+                              return 'Password must be at least 6 characters';
                             return null;
                           },
                         ),
@@ -161,36 +149,50 @@ class _LoginScreenState extends State<LoginScreen> {
                               ? const SizedBox(
                                   height: 50,
                                   child: Center(
-                                    child: CircularProgressIndicator(color: Colors.white),
+                                    child: CircularProgressIndicator(
+                                      color: Colors.black,
+                                    ),
                                   ),
                                 )
                               : ElevatedButton(
                                   onPressed: () async {
                                     if (_formKey.currentState!.validate()) {
                                       setState(() => _isLoading = true);
-                                      String result = await AuthService().loginUser(
-                                        email: emailController.text.trim(),
-                                        password: passwordController.text.trim(), 
-                                      );
+                                      String result = await AuthService()
+                                          .loginUser(
+                                            email: emailController.text.trim(),
+                                            password: passwordController.text
+                                                .trim(),
+                                          );
                                       setState(() => _isLoading = false);
 
-                                              if (result == 'Success') {
-                                        Navigator.pushReplacementNamed(context, '/home');
+                                      if (result == 'Success') {
+                                        Navigator.pushReplacementNamed(
+                                          context,
+                                          '/home',
+                                        );
                                       } else {
-                                        ScaffoldMessenger.of(context).showSnackBar(
+                                        ScaffoldMessenger.of(
+                                          context,
+                                        ).showSnackBar(
                                           SnackBar(content: Text(result)),
                                         );
                                       }
                                     }
                                   },
                                   style: ElevatedButton.styleFrom(
-                                    padding: const EdgeInsets.symmetric(vertical: 14),
-                                    backgroundColor: Colors.white,
-                                    foregroundColor: const Color(0xFF6366F1),
+                                    padding: const EdgeInsets.symmetric(
+                                      vertical: 14,
+                                    ),
+                                    backgroundColor: Colors.black,
+                                    foregroundColor: Colors.white,
                                   ),
                                   child: const Text(
                                     'Sign In',
-                                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold,
+                                    ),
                                   ),
                                 ),
                         ),
@@ -211,9 +213,10 @@ class _LoginScreenState extends State<LoginScreen> {
                     child: Text(
                       "Forgot Password?",
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            color: Colors.white,
-                            fontWeight: FontWeight.w500,
-                          ),
+                        color: Colors.black,
+                        fontWeight: FontWeight.w500,
+                        decoration: TextDecoration.underline,
+                      ),
                     ),
                   ),
                   const SizedBox(height: 24),
@@ -224,7 +227,9 @@ class _LoginScreenState extends State<LoginScreen> {
                     children: [
                       Text(
                         "Don't have an account? ",
-                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.white70),
+                        style: Theme.of(
+                          context,
+                        ).textTheme.bodyMedium?.copyWith(color: Colors.black54),
                       ),
                       GestureDetector(
                         onTap: () {
@@ -232,9 +237,11 @@ class _LoginScreenState extends State<LoginScreen> {
                         },
                         child: Text(
                           "Sign Up",
-                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                color: Colors.white,
+                          style: Theme.of(context).textTheme.bodyMedium
+                              ?.copyWith(
+                                color: Colors.black,
                                 fontWeight: FontWeight.bold,
+                                decoration: TextDecoration.underline,
                               ),
                         ),
                       ),
@@ -255,7 +262,9 @@ class _LoginScreenState extends State<LoginScreen> {
       builder: (context) {
         final emailCtrl = TextEditingController(text: emailController.text);
         return AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
           title: const Text('Reset Password'),
           content: Column(
             mainAxisSize: MainAxisSize.min,
@@ -282,7 +291,9 @@ class _LoginScreenState extends State<LoginScreen> {
             ),
             ElevatedButton(
               onPressed: () async {
-                final result = await AuthService().resetPassword(emailCtrl.text);
+                final result = await AuthService().resetPassword(
+                  emailCtrl.text,
+                );
                 if (mounted) {
                   Navigator.pop(context);
                   if (result == 'Success') {

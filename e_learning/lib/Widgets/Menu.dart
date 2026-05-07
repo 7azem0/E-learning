@@ -16,17 +16,14 @@ class Menu extends StatelessWidget {
           return ListView(
             padding: EdgeInsets.zero,
             children: [
-              // Modern Drawer Header
               Container(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [const Color(0xFF6366F1), const Color(0xFF8B5CF6)],
-                  ),
-                ),
+                decoration: const BoxDecoration(color: Color(0xFFFAFAF8)),
                 child: DrawerHeader(
-                  decoration: const BoxDecoration(color: Colors.transparent),
+                  decoration: const BoxDecoration(
+                    border: Border(
+                      bottom: BorderSide(color: Color(0xFFE2E2E2)),
+                    ),
+                  ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -35,21 +32,21 @@ class Menu extends StatelessWidget {
                         width: 70,
                         height: 70,
                         decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.2),
+                          color: Colors.white,
                           shape: BoxShape.circle,
-                          border: Border.all(color: Colors.white, width: 2),
+                          border: Border.all(color: Colors.black, width: 1),
                         ),
                         child: const Icon(
                           Icons.person,
                           size: 40,
-                          color: Colors.white,
+                          color: Colors.black,
                         ),
                       ),
                       const SizedBox(height: 12),
                       Text(
                         AuthService().currentUser?.name ?? "User",
                         style: const TextStyle(
-                          color: Colors.white,
+                          color: Colors.black,
                           fontSize: 20,
                           fontWeight: FontWeight.bold,
                         ),
@@ -58,7 +55,7 @@ class Menu extends StatelessWidget {
                       Text(
                         AuthService().currentUser?.email ?? "",
                         style: const TextStyle(
-                          color: Colors.white70,
+                          color: Colors.black54,
                           fontSize: 13,
                         ),
                       ),
@@ -195,19 +192,19 @@ class _DrawerMenuItem extends StatelessWidget {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         leading: Icon(
           icon,
-          color: isDestructive ? Colors.red.shade400 : const Color(0xFF6366F1),
+          color: isDestructive ? Colors.red.shade700 : Colors.black87,
         ),
         title: Text(
           label,
           style: TextStyle(
-            color: isDestructive ? Colors.red.shade400 : Colors.black87,
+            color: isDestructive ? Colors.red.shade700 : Colors.black87,
             fontWeight: FontWeight.w500,
           ),
         ),
         onTap: onTap,
         hoverColor: isDestructive
             ? Colors.red.shade50
-            : const Color(0xFF6366F1).withOpacity(0.1),
+            : Colors.black.withOpacity(0.04),
       ),
     );
   }

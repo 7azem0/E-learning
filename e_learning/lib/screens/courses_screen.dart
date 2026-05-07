@@ -18,6 +18,10 @@ class CoursesScreen extends StatelessWidget {
           "Courses",
           style: TextStyle(fontWeight: FontWeight.w700, fontSize: 22),
         ),
+        bottom: const PreferredSize(
+          preferredSize: Size.fromHeight(1),
+          child: Divider(height: 1),
+        ),
       ),
       drawer: const Menu(),
       body: Padding(
@@ -58,9 +62,9 @@ class CoursesScreen extends StatelessWidget {
             return GridView.builder(
               gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: 2,
-                mainAxisSpacing: 16,
-                crossAxisSpacing: 16,
-                childAspectRatio: 0.85,
+                mainAxisSpacing: 12,
+                crossAxisSpacing: 12,
+                childAspectRatio: 0.9,
               ),
               itemCount: courses.length,
               itemBuilder: (context, index) {
@@ -176,9 +180,7 @@ class _ModernCourseCardState extends State<ModernCourseCard> {
         final enrolled = snapshot.data ?? false;
         return Card(
           elevation: 1,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(2)),
           child: InkWell(
             borderRadius: BorderRadius.circular(12),
             onTap: widget.onTap,
@@ -188,8 +190,8 @@ class _ModernCourseCardState extends State<ModernCourseCard> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   CircleAvatar(
-                    backgroundColor: widget.course.color.withOpacity(0.12),
-                    child: Icon(widget.course.icon, color: widget.course.color),
+                    backgroundColor: const Color(0xFFF1F1EF),
+                    child: Icon(widget.course.icon, color: Colors.black87),
                   ),
                   const Spacer(),
                   Text(
@@ -205,9 +207,7 @@ class _ModernCourseCardState extends State<ModernCourseCard> {
                   Text(
                     enrolled ? 'Enrolled' : 'Not enrolled',
                     style: TextStyle(
-                      color: enrolled
-                          ? Colors.green.shade700
-                          : Colors.grey.shade600,
+                      color: enrolled ? Colors.black : Colors.grey.shade600,
                       fontWeight: FontWeight.w600,
                       fontSize: 12,
                     ),
