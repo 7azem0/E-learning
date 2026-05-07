@@ -12,7 +12,8 @@ import 'package:chewie/chewie.dart';
 import 'package:path_provider/path_provider.dart';
 
 import 'lesson_screen_stub.dart'
-    if (dart.library.html) 'lesson_screen_web.dart' as webHelper;
+    if (dart.library.html) 'lesson_screen_web.dart'
+    as webHelper;
 
 class LessonScreen extends StatefulWidget {
   final String courseId;
@@ -54,10 +55,7 @@ class _LessonScreenState extends State<LessonScreen>
     _tabController = TabController(length: _tabs.length, vsync: this);
 
     if (kIsWeb) {
-      webHelper.registerViews(
-        videoUrl: widget.videoUrl,
-        pdfUrl: widget.pdfUrl,
-      );
+      webHelper.registerViews(videoUrl: widget.videoUrl, pdfUrl: widget.pdfUrl);
     }
   }
 
@@ -112,12 +110,23 @@ class _LessonScreenState extends State<LessonScreen>
     );
   }
 
-  Widget _buildWebContent() {
-    if (_tabs.length == 1) return _buildWebView(_tabs[0].text!);
-    return TabBarView(
-      controller: _tabController,
-      children: _tabs.map((t) => _buildWebView(t.text!)).toList(),
-    );
+  Widget _buildContent(String type) {
+    if (kIsWeb) return _buildWebView(type);
+
+    if (type == 'Video' && widget.videoUrl != null) {
+      return _MobileVideoPlayer(videoUrl: widget.videoUrl!);
+    } else if (type == 'PDF' && widget.pdfUrl != null) {
+      return _MobilePdfViewer(pdfUrl: widget.pdfUrl!);
+    } else if (type == 'Discussion') {
+      return _LessonDiscussion(
+        courseId: widget.courseId,
+        sectionId: widget.sectionId,
+        lessonId: widget.lessonId,
+        courseColor: widget.courseColor,
+      );
+    }
+
+    return _NoLessonContent();
   }
 
   Widget _buildWebView(String type) {
@@ -133,6 +142,118 @@ class _LessonScreenState extends State<LessonScreen>
         courseColor: widget.courseColor,
       );
     }
+    return _NoLessonContent();
+  }
+}
+
+class _MobileVideoPlayer extends StatefulWidget {
+  final String videoUrl;
+
+  const _MobileVideoPlayer({required this.videoUrl});
+
+  @override
+  State<_MobileVideoPlayer> createState() => _MobileVideoPlayerState();
+}
+
+class _MobileVideoPlayerState extends State<_MobileVideoPlayer> {
+  late final VideoPlayerController _videoController;
+  ChewieController? _chewieController;
+  late final Future<void> _initializeVideo;
+
+  @override
+  void initState() {
+    super.initState();
+    _videoController = VideoPlayerController.networkUrl(
+      Uri.parse(widget.videoUrl),
+    );
+    _initializeVideo = _videoController.initialize().then((_) {
+      if (!mounted) return;
+      setState(() {
+        _chewieController = ChewieController(
+          videoPlayerController: _videoController,
+          autoPlay: false,
+          looping: false,
+        );
+      });
+    });
+  }
+
+  @override
+  void dispose() {
+    _chewieController?.dispose();
+    _videoController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder<void>(
+      future: _initializeVideo,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState != ConnectionState.done) {
+          return const Center(child: CircularProgressIndicator());
+        }
+        if (snapshot.hasError || _chewieController == null) {
+          return _LessonError(message: 'Unable to load the video.');
+        }
+        return Chewie(controller: _chewieController!);
+      },
+    );
+  }
+}
+
+class _MobilePdfViewer extends StatefulWidget {
+  final String pdfUrl;
+
+  const _MobilePdfViewer({required this.pdfUrl});
+
+  @override
+  State<_MobilePdfViewer> createState() => _MobilePdfViewerState();
+}
+
+class _MobilePdfViewerState extends State<_MobilePdfViewer> {
+  late final Future<String> _pdfPath;
+
+  @override
+  void initState() {
+    super.initState();
+    _pdfPath = _downloadPdf(widget.pdfUrl);
+  }
+
+  Future<String> _downloadPdf(String url) async {
+    final directory = await getTemporaryDirectory();
+    final file = File('${directory.path}/lesson_${url.hashCode}.pdf');
+    if (await file.exists()) return file.path;
+
+    final response = await http.get(Uri.parse(url));
+    if (response.statusCode < 200 || response.statusCode >= 300) {
+      throw Exception('Unable to download PDF');
+    }
+
+    await file.writeAsBytes(response.bodyBytes, flush: true);
+    return file.path;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder<String>(
+      future: _pdfPath,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState != ConnectionState.done) {
+          return const Center(child: CircularProgressIndicator());
+        }
+        if (snapshot.hasError || snapshot.data == null) {
+          return _LessonError(message: 'Unable to load the PDF.');
+        }
+        return PDFView(filePath: snapshot.data!);
+      },
+    );
+  }
+}
+
+class _NoLessonContent extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -144,6 +265,26 @@ class _LessonScreenState extends State<LessonScreen>
             style: TextStyle(color: Colors.grey.shade600),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _LessonError extends StatelessWidget {
+  final String message;
+
+  const _LessonError({required this.message});
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Text(
+          message,
+          textAlign: TextAlign.center,
+          style: TextStyle(color: Colors.red.shade400),
+        ),
       ),
     );
   }
