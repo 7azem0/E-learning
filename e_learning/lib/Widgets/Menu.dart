@@ -18,7 +18,9 @@ class Menu extends StatelessWidget {
             children: [
               Container(
                 decoration: const BoxDecoration(color: Color(0xFFFAFAF8)),
-                child: DrawerHeader(
+                child: Container(
+                  height: 152,
+                  padding: const EdgeInsets.fromLTRB(16, 18, 16, 14),
                   decoration: const BoxDecoration(
                     border: Border(
                       bottom: BorderSide(color: Color(0xFFE2E2E2)),
@@ -26,11 +28,11 @@ class Menu extends StatelessWidget {
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisAlignment: MainAxisAlignment.center,
+                    mainAxisAlignment: MainAxisAlignment.end,
                     children: [
                       Container(
-                        width: 70,
-                        height: 70,
+                        width: 58,
+                        height: 58,
                         decoration: BoxDecoration(
                           color: Colors.white,
                           shape: BoxShape.circle,
@@ -38,25 +40,29 @@ class Menu extends StatelessWidget {
                         ),
                         child: const Icon(
                           Icons.person,
-                          size: 40,
+                          size: 32,
                           color: Colors.black,
                         ),
                       ),
-                      const SizedBox(height: 12),
+                      const SizedBox(height: 10),
                       Text(
                         AuthService().currentUser?.name ?? "User",
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
                           color: Colors.black,
-                          fontSize: 20,
+                          fontSize: 18,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-                      const SizedBox(height: 4),
+                      const SizedBox(height: 2),
                       Text(
                         AuthService().currentUser?.email ?? "",
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
                           color: Colors.black54,
-                          fontSize: 13,
+                          fontSize: 12,
                         ),
                       ),
                     ],
