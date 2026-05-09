@@ -1,13 +1,7 @@
 [
   {
-    "origin": [
-      "http://localhost:46460",
-      "http://localhost:33074",
-      "http://127.0.0.1:46460",
-      "http://127.0.0.1:33074"
-    ],
-    "method": ["GET", "HEAD", "OPTIONS"],
-    "maxAgeSeconds": 3600,
-    "responseHeader": ["Content-Type", "Authorization"]
+    "origin": ["*"],
+    "method": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    "maxAgeSeconds": 3600
   }
 ]

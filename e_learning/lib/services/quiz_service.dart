@@ -12,7 +12,7 @@ class QuizService {
   factory QuizService() => _instance;
   QuizService._internal();
 
-  static const String _apiKey = 'AIzaSyDrxTPV9l2KwaT-myVRTVseQEtjbFdCKJ8';
+  static const String _apiKey = 'AIzaSyBdAbW4UpZT4ccqm4M00fxa5TLI7uo2ntU';
   static const String _apiUrl =
     'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent';
 
@@ -57,13 +57,19 @@ Future<Uint8List?> _downloadPdf(String url) async {
     final ref = FirebaseStorage.instance.refFromURL(url);
     
     // Try getData first
-    Uint8List? bytes = await ref.getData(100 * 1024 * 1024);
+    Uint8List? bytes;
+    try {
+      bytes = await ref.getData(100 * 1024 * 1024);
+    } catch (e) {
+      print('getData failed or threw an error: $e');
+    }
     
     // If null, try getting download URL and fetching via http
     if (bytes == null) {
       print('getData returned null, trying via download URL...');
       final downloadUrl = await ref.getDownloadURL();
       print('Download URL: $downloadUrl');
+      
       final response = await http.get(Uri.parse(downloadUrl));
       print('HTTP status: ${response.statusCode}');
       if (response.statusCode == 200) {
