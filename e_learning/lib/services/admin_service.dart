@@ -240,6 +240,12 @@ class AdminService {
             'pdfUrl': null,
             'videoUrl': null,
           });
+
+      // Update course lesson count
+      await _firestore.collection('courses').doc(courseId).update({
+        'lessonCount': FieldValue.increment(1),
+      });
+
       return 'Success';
     } catch (e) {
       return 'Failed to create lesson';
@@ -285,9 +291,32 @@ class AdminService {
           .collection('courses/$courseId/sections/$sectionId/lessons')
           .doc(lessonId)
           .delete();
+
+      // Update course lesson count
+      await _firestore.collection('courses').doc(courseId).update({
+        'lessonCount': FieldValue.increment(-1),
+      });
+
       return 'Success';
     } catch (e) {
       return 'Failed to delete lesson';
+    }
+  }
+
+  /// Manually sync the lessonCount for a course based on its actual lessons
+  Future<void> syncLessonCount(String courseId) async {
+    try {
+      final sections = await _firestore.collection('courses/$courseId/sections').get();
+      int total = 0;
+      for (var section in sections.docs) {
+        final lessons = await _firestore
+            .collection('courses/$courseId/sections/${section.id}/lessons')
+            .get();
+        total += lessons.docs.length;
+      }
+      await _firestore.collection('courses').doc(courseId).update({'lessonCount': total});
+    } catch (e) {
+      debugPrint('Error syncing lesson count: $e');
     }
   }
 

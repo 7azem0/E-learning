@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../services/knowledge_gap_service.dart';
+import '../services/enrollment_service.dart';
 import '../widgets/menu.dart';
 
 class QuizzesAnalysisScreen extends StatefulWidget {
@@ -31,18 +32,27 @@ class _QuizzesAnalysisScreenState extends State<QuizzesAnalysisScreen> {
     if (userId == null) return;
 
     try {
-      final coursesSnapshot = await _firestore.collection('courses').get();
+      // 1. Get user's enrolled courses first
+      final enrolledCourses = await EnrollmentService().getEnrolledCourses();
+      final enrolledCourseIds = enrolledCourses.map((c) => c['id'] as String).toSet();
       final Map<String, String> courseTitles = {};
-      for (var doc in coursesSnapshot.docs) {
-        courseTitles[doc.id] = doc['title'] ?? 'Unknown Course';
+      for (var course in enrolledCourses) {
+        courseTitles[course['id']] = course['title'] ?? 'Unknown Course';
       }
 
+      // 2. Fetch all quizzes to filter by existence and course
       final quizzesSnapshot = await _firestore.collection('quizzes').get();
       final Map<String, Map<String, dynamic>> quizzesData = {};
       for (var doc in quizzesSnapshot.docs) {
-        quizzesData[doc.id] = doc.data() as Map<String, dynamic>;
+        final data = doc.data();
+        final courseId = data['courseId'] as String?;
+        // Only include quiz if its course is in enrolled list
+        if (courseId != null && enrolledCourseIds.contains(courseId)) {
+          quizzesData[doc.id] = data;
+        }
       }
 
+      // 3. Fetch user's quiz attempts
       final attemptsSnapshot = await _firestore
           .collection('quiz_attempts')
           .where('userId', isEqualTo: userId)
@@ -50,7 +60,12 @@ class _QuizzesAnalysisScreenState extends State<QuizzesAnalysisScreen> {
 
       final validAttempts = attemptsSnapshot.docs.where((doc) {
         final data = doc.data();
-        return data['score'] != null && data['completedAt'] != null;
+        final quizId = data['quizId'] as String?;
+        // Attempt is valid only if score exists AND the quiz still exists/belongs to enrolled course
+        return data['score'] != null && 
+               data['completedAt'] != null && 
+               quizId != null && 
+               quizzesData.containsKey(quizId);
       }).toList();
       
       validAttempts.sort((a, b) {
@@ -64,12 +79,10 @@ class _QuizzesAnalysisScreenState extends State<QuizzesAnalysisScreen> {
 
       for (var doc in validAttempts) {
         final attemptData = doc.data();
-        final quizId = attemptData['quizId'] as String?;
-        if (quizId == null) continue;
-
-        final quizData = quizzesData[quizId];
-        final courseId = quizData?['courseId'] as String? ?? 'unknown';
-        final quizTitle = quizData?['title'] as String? ?? 'Unknown Quiz';
+        final quizId = attemptData['quizId'] as String;
+        final quizData = quizzesData[quizId]!;
+        final courseId = quizData['courseId'] as String;
+        final quizTitle = quizData['title'] as String? ?? 'Unknown Quiz';
 
         if (!grouped.containsKey(courseId)) {
           grouped[courseId] = [];

@@ -222,7 +222,7 @@ class QuizResultScreen extends StatelessWidget {
             ),
           ),
           onPressed: () {
-            Navigator.of(context).popUntil((route) => route.isFirst);
+            Navigator.of(context).pop();
           },
           child: const Text(
             'Return to Course',

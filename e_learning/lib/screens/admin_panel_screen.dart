@@ -479,12 +479,19 @@ class AdminPanelScreen extends StatelessWidget {
             children: [
               DropdownButtonFormField<String>(
                 value: selectedCourseId,
-                decoration: const InputDecoration(labelText: 'Course'),
+                isExpanded: true, // Allow dropdown to take full width and handle overflow
+                decoration: const InputDecoration(
+                  labelText: 'Course',
+                  border: OutlineInputBorder(),
+                ),
                 items: courses
                     .map(
                       (course) => DropdownMenuItem(
                         value: course.id,
-                        child: Text(course['title'] ?? 'Untitled course'),
+                        child: Text(
+                          course['title'] ?? 'Untitled course',
+                          overflow: TextOverflow.ellipsis, // Truncate long titles
+                        ),
                       ),
                     )
                     .toList(),
