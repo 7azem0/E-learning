@@ -105,6 +105,14 @@ class Menu extends StatelessWidget {
                   Navigator.pushNamed(context, '/quizzes_analysis');
                 },
               ),
+              _DrawerMenuItem(
+                icon: Icons.calendar_today_outlined,
+                label: "Study Planner",
+                onTap: () {
+                  Navigator.pop(context);
+                  Navigator.pushNamed(context, '/study_planner');
+                },
+              ),
               if (role == 'admin')
                 _DrawerMenuItem(
                   icon: Icons.admin_panel_settings_outlined,
