@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import '../services/achievement_service.dart';
 
 class QuizAttemptService {
   static final QuizAttemptService _instance = QuizAttemptService._internal();
@@ -105,6 +106,26 @@ class QuizAttemptService {
         'totalQuestions': totalQuestions,
         'incorrectQuestions': incorrectQuestions,
       });
+
+      // Achievement triggers
+      final achievementSvc = AchievementService();
+      await achievementSvc.checkAndUnlockBadge('quiz_apprentice');
+      if (percentage == 100) {
+        await achievementSvc.checkAndUnlockBadge('perfect_score');
+      }
+
+      // Check quiz master
+      final userAttempts = await _firestore
+          .collection('quiz_attempts')
+          .where('userId', isEqualTo: userId)
+          .get();
+      int completedCount = 0;
+      for (var doc in userAttempts.docs) {
+        if (doc.data()['completedAt'] != null) completedCount++;
+      }
+      if (completedCount >= 5) {
+        await achievementSvc.checkAndUnlockBadge('quiz_master');
+      }
 
       return {
         'correctAnswers': correctCount,

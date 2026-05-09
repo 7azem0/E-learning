@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import '../services/achievement_service.dart';
 
 class MoodTrackingService {
   static final MoodTrackingService _instance = MoodTrackingService._internal();
@@ -22,6 +23,8 @@ class MoodTrackingService {
         'note': note,
         'timestamp': Timestamp.now(),
       });
+
+      await AchievementService().checkAndUnlockBadge('mood_logger');
 
       return 'Success';
     } catch (e) {

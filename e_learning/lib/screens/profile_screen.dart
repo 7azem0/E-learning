@@ -7,6 +7,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../services/authentication_service.dart';
 import '../services/mood_tracking_service.dart';
+import '../services/achievement_service.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -291,6 +292,89 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ),
 
           const SizedBox(height: 32),
+
+          // Badges & Trophies
+          if (!_isEditing) ...[
+            Row(
+              children: [
+                const Icon(Icons.emoji_events, color: Colors.amber),
+                const SizedBox(width: 8),
+                Text(
+                  "Badges & Trophies",
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            StreamBuilder<List<Map<String, dynamic>>>(
+              stream: AchievementService().getUnlockedBadges(),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+
+                final badges = snapshot.data ?? [];
+                
+                if (badges.isEmpty) {
+                  return Card(
+                    color: Colors.grey.shade50,
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      side: BorderSide(color: Colors.grey.shade200),
+                    ),
+                    child: const Padding(
+                      padding: EdgeInsets.all(16.0),
+                      child: Text(
+                        "You haven't unlocked any badges yet. Keep learning!",
+                        style: TextStyle(color: Colors.grey),
+                      ),
+                    ),
+                  );
+                }
+
+                return GridView.builder(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 3,
+                    crossAxisSpacing: 12,
+                    mainAxisSpacing: 12,
+                    childAspectRatio: 0.85,
+                  ),
+                  itemCount: badges.length,
+                  itemBuilder: (context, index) {
+                    final badge = badges[index];
+                    return Container(
+                      decoration: BoxDecoration(
+                        color: (badge['color'] as Color).withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: (badge['color'] as Color).withOpacity(0.3)),
+                      ),
+                      padding: const EdgeInsets.all(8),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(badge['icon'], color: badge['color'], size: 36),
+                          const SizedBox(height: 8),
+                          Text(
+                            badge['title'],
+                            textAlign: TextAlign.center,
+                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                );
+              },
+            ),
+            const SizedBox(height: 32),
+          ],
 
           // Mood History
           if (!_isEditing) ...[
