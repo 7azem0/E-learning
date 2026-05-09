@@ -8,7 +8,7 @@ class KnowledgeGapService {
   factory KnowledgeGapService() => _instance;
   KnowledgeGapService._internal();
 
-  static const String _apiKey = 'AIzaSyAhNdcksHuBrvJISLPAm4N0qgWzil-6WCE';
+  static const String _apiKey = 'AIzaSyBRNXPFKpDgQAYtTd5g5u6AREs3PURrTi8';
   static const String _apiUrl =
       'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent';
 

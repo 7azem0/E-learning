@@ -12,6 +12,7 @@ import 'screens/register_screen.dart';
 import 'screens/courses_screen.dart';
 import 'screens/profile_screen.dart';
 import 'screens/quizzes_analysis_screen.dart';
+import 'screens/smart_study_planner_screen.dart';
 import 'services/authentication_service.dart';
 
 void main() async {
@@ -102,6 +103,7 @@ class ELearningApp extends StatelessWidget {
         '/profile': (context) => const ProfileScreen(),
         '/admin': (context) => const AdminPanelScreen(),
         '/quizzes_analysis': (context) => const QuizzesAnalysisScreen(),
+        '/study_planner': (context) => const SmartStudyPlannerScreen(),
       },
     );
   }
