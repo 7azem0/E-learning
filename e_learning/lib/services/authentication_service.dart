@@ -79,6 +79,8 @@ class AuthService {
       final doc = await _firestore.collection('users').doc(uid).get();
       if (doc.exists) {
         _currentUser = User.fromFirestore(doc);
+        // Ensure role state is updated for global access
+        roleNotifier.value = _currentUser?.isAdmin == true ? 'admin' : 'student';
       }
     } catch (e) {
       print('Error loading user data: $e');
@@ -138,7 +140,6 @@ class AuthService {
       );
 
       await _loadUserData(userCredential.user!.uid);
-      roleNotifier.value = _currentUser?.isAdmin == true ? 'admin' : 'student';
       return 'Success';
     } on firebase_auth.FirebaseAuthException catch (e) {
       if (e.code == 'user-not-found') {

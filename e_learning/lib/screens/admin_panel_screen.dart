@@ -21,8 +21,8 @@ class AdminPanelScreen extends StatelessWidget {
           'Instructor Panel',
           style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24),
         ),
-        backgroundColor: const Color(0xFF111111),
-        foregroundColor: Colors.white,
+        backgroundColor: const Color(0xFFFFFFFF),
+        foregroundColor: Colors.black,
         elevation: 0,
       ),
       body: StreamBuilder<QuerySnapshot>(
@@ -46,7 +46,7 @@ class AdminPanelScreen extends StatelessWidget {
                   borderRadius: BorderRadius.circular(16),
                   boxShadow: [
                     BoxShadow(
-                      color: const Color(0xFF111111).withOpacity(0.3),
+                      color: const Color(0xFFFFFFFF).withOpacity(0.3),
                       blurRadius: 15,
                       offset: const Offset(0, 8),
                     ),
@@ -55,7 +55,7 @@ class AdminPanelScreen extends StatelessWidget {
                 child: Material(
                   color: Colors.transparent,
                   child: InkWell(
-                    onTap: () => _showAnnouncementDialog(context, courses),
+                    onTap: () => _showCourseDialog(context),
                     borderRadius: BorderRadius.circular(16),
                     child: Padding(
                       padding: const EdgeInsets.symmetric(
@@ -65,7 +65,7 @@ class AdminPanelScreen extends StatelessWidget {
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: const [
-                          Icon(Icons.campaign_outlined, color: Colors.white),
+                          Icon(Icons.add, color: Colors.white),
                           SizedBox(width: 8),
                           Text(
                             'Add New Course',
@@ -101,7 +101,7 @@ class AdminPanelScreen extends StatelessWidget {
                 child: Material(
                   color: Colors.transparent,
                   child: InkWell(
-                    onTap: () => _showCourseDialog(context),
+                    onTap: () => _showAnnouncementDialog(context, courses),
                     borderRadius: BorderRadius.circular(16),
                     child: Padding(
                       padding: const EdgeInsets.symmetric(
@@ -111,7 +111,7 @@ class AdminPanelScreen extends StatelessWidget {
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: const [
-                          Icon(Icons.add, color: Colors.white),
+                          Icon(Icons.campaign_outlined, color: Colors.white),
                           SizedBox(width: 8),
                           Text(
                             'Broadcast an Announcement',
@@ -1380,7 +1380,9 @@ class _LessonCardState extends State<_LessonCard> {
           sectionId: widget.sectionId,
           lessonId: widget.lesson.id,
           fileBytes: file['bytes'],
+          filePath: file['path'],
           fileName: file['name'],
+          fileSize: file['size'] ?? 0,
           onProgress: (p) => setState(() => _pdfProgress = p),
         );
         setState(() => _pdfProgress = null);
@@ -1401,7 +1403,9 @@ class _LessonCardState extends State<_LessonCard> {
           sectionId: widget.sectionId,
           lessonId: widget.lesson.id,
           fileBytes: file['bytes'],
+          filePath: file['path'],
           fileName: file['name'],
+          fileSize: file['size'] ?? 0,
           onProgress: (p) => setState(() => _videoProgress = p),
         );
         setState(() => _videoProgress = null);

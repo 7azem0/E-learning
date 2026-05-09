@@ -12,7 +12,7 @@ class StudyPlannerService {
   factory StudyPlannerService() => _instance;
   StudyPlannerService._internal();
 
-  static const String _apiKey = 'AIzaSyBRNXPFKpDgQAYtTd5g5u6AREs3PURrTi8';
+  static const String _apiKey = 'AIzaSyDfWMYnyg33W08qX_mTMZlFPUS5H-1zaQE';
   static const String _apiUrl =
       'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent';
 

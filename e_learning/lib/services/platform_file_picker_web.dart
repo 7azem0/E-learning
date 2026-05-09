@@ -23,7 +23,7 @@ Future<Map<String, dynamic>?> pickFile(String accept) async {
   reader.readAsArrayBuffer(htmlFile);
   await reader.onLoad.first;
   final bytes = Uint8List.fromList(reader.result as List<int>);
-  return {'bytes': bytes, 'name': htmlFile.name};
+  return {'bytes': bytes, 'name': htmlFile.name, 'size': htmlFile.size};
 }
 
 Future<Uint8List?> fetchFileBytes(String url) async {

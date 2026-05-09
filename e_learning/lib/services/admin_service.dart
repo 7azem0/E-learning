@@ -3,6 +3,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'dart:typed_data';
+import 'dart:io';
+import 'package:flutter/foundation.dart';
 
 class AdminService {
   static final AdminService _instance = AdminService._internal();
@@ -295,19 +297,37 @@ class AdminService {
     required String courseId,
     required String sectionId,
     required String lessonId,
-    required Uint8List fileBytes,
+    Uint8List? fileBytes,
+    String? filePath,
     required String fileName,
+    required int fileSize,
     void Function(double progress)? onProgress,
   }) async {
     try {
+      // 100MB Limit Check for PDFs
+      const limit = 100 * 1024 * 1024;
+      if (fileSize > limit) {
+        return 'PDF is too large. Maximum limit is 100MB.';
+      }
+
       final ref = _storage.ref(
         'courses/$courseId/sections/$sectionId/$lessonId/pdf/$fileName',
       );
 
-      final uploadTask = ref.putData(
-        fileBytes,
-        SettableMetadata(contentType: 'application/pdf'),
-      );
+      UploadTask uploadTask;
+      if (!kIsWeb && filePath != null) {
+        uploadTask = ref.putFile(
+          File(filePath),
+          SettableMetadata(contentType: 'application/pdf'),
+        );
+      } else if (fileBytes != null) {
+        uploadTask = ref.putData(
+          fileBytes,
+          SettableMetadata(contentType: 'application/pdf'),
+        );
+      } else {
+        return 'No file data provided';
+      }
 
       // Listen to progress updates
       uploadTask.snapshotEvents.listen((snapshot) {
@@ -340,19 +360,37 @@ class AdminService {
     required String courseId,
     required String sectionId,
     required String lessonId,
-    required Uint8List fileBytes,
+    Uint8List? fileBytes,
+    String? filePath,
     required String fileName,
+    required int fileSize,
     void Function(double progress)? onProgress,
   }) async {
     try {
+      // 1GB Limit Check (1024 * 1024 * 1024 bytes)
+      const oneGB = 1024 * 1024 * 1024;
+      if (fileSize > oneGB) {
+        return 'File is too large. Maximum limit is 1GB.';
+      }
+
       final ref = _storage.ref(
         'courses/$courseId/sections/$sectionId/$lessonId/video/$fileName',
       );
 
-      final uploadTask = ref.putData(
-        fileBytes,
-        SettableMetadata(contentType: 'video/mp4'),
-      );
+      UploadTask uploadTask;
+      if (!kIsWeb && filePath != null) {
+        uploadTask = ref.putFile(
+          File(filePath),
+          SettableMetadata(contentType: 'video/mp4'),
+        );
+      } else if (fileBytes != null) {
+        uploadTask = ref.putData(
+          fileBytes,
+          SettableMetadata(contentType: 'video/mp4'),
+        );
+      } else {
+        return 'No file data provided';
+      }
 
       // Listen to progress updates
       uploadTask.snapshotEvents.listen((snapshot) {

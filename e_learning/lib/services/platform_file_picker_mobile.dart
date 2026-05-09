@@ -7,12 +7,13 @@ Future<Map<String, dynamic>?> pickFile(String accept) async {
   final result = await FilePicker.platform.pickFiles(
     type: isPdf ? FileType.custom : FileType.video,
     allowedExtensions: isPdf ? ['pdf'] : null,
-    withData: true,
+    withData: false, // Don't load into memory for large files
   );
-  if (result == null || result.files.single.bytes == null) return null;
+  if (result == null || result.files.single.path == null) return null;
   return {
-    'bytes': result.files.single.bytes!,
+    'path': result.files.single.path,
     'name': result.files.single.name,
+    'size': result.files.single.size,
   };
 }
 

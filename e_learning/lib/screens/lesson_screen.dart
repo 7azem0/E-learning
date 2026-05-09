@@ -60,13 +60,6 @@ class _LessonScreenState extends State<LessonScreen>
       lessonId: widget.lessonId,
     );
 
-    // Log lesson activity for progress heatmap
-    ActivityService().logActivity(
-      type: 'lesson_opened',
-      courseId: widget.courseId,
-      lessonId: widget.lessonId,
-    );
-
     if (kIsWeb) {
       webHelper.registerViews(videoUrl: widget.videoUrl, pdfUrl: widget.pdfUrl);
     }
@@ -226,6 +219,9 @@ class _PdfViewerWidgetState extends State<_PdfViewerWidget> {
   bool _isLoading = true;
   String? _localPath;
   String? _error;
+  int _totalPages = 0;
+  int _currentPage = 0;
+  PDFViewController? _pdfController;
 
   @override
   void initState() {
@@ -238,7 +234,7 @@ class _PdfViewerWidgetState extends State<_PdfViewerWidget> {
       final response = await http.get(Uri.parse(widget.url));
       if (response.statusCode == 200) {
         final dir = await getTemporaryDirectory();
-        final file = File('${dir.path}/lesson.pdf');
+        final file = File('${dir.path}/lesson_${DateTime.now().millisecondsSinceEpoch}.pdf');
         await file.writeAsBytes(response.bodyBytes);
         if (!mounted) return;
         setState(() {
@@ -269,12 +265,45 @@ class _PdfViewerWidgetState extends State<_PdfViewerWidget> {
     if (_error != null) {
       return Center(child: Text(_error!));
     }
-    return PDFView(
-      filePath: _localPath!,
-      enableSwipe: true,
-      swipeHorizontal: false,
-      autoSpacing: true,
-      pageFling: true,
+    return Stack(
+      children: [
+        PDFView(
+          filePath: _localPath!,
+          enableSwipe: true,
+          swipeHorizontal: false,
+          autoSpacing: true,
+          pageFling: true,
+          onRender: (pages) {
+            setState(() {
+              _totalPages = pages ?? 0;
+            });
+          },
+          onViewCreated: (controller) {
+            _pdfController = controller;
+          },
+          onPageChanged: (page, total) {
+            setState(() {
+              _currentPage = page ?? 0;
+            });
+          },
+        ),
+        if (_totalPages > 0)
+          Positioned(
+            bottom: 20,
+            right: 20,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              decoration: BoxDecoration(
+                color: Colors.black.withOpacity(0.7),
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Text(
+                '${_currentPage + 1} / $_totalPages',
+                style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+              ),
+            ),
+          ),
+      ],
     );
   }
 }
