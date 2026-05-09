@@ -4,7 +4,9 @@ import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import '../services/authentication_service.dart';
+import '../services/mood_tracking_service.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -289,6 +291,102 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ),
 
           const SizedBox(height: 32),
+
+          // Mood History
+          if (!_isEditing) ...[
+            Text(
+              "Learning Mood History",
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+            ),
+            const SizedBox(height: 16),
+            StreamBuilder<QuerySnapshot>(
+              stream: MoodTrackingService().getMoodHistory(),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+
+                if (snapshot.hasError) {
+                  return const Text('Failed to load mood history.');
+                }
+
+                final docs = snapshot.data?.docs.toList() ?? [];
+                
+                // Sort locally to avoid Firestore composite index requirement
+                docs.sort((a, b) {
+                  final tsA = (a.data() as Map<String, dynamic>)['timestamp'] as Timestamp?;
+                  final tsB = (b.data() as Map<String, dynamic>)['timestamp'] as Timestamp?;
+                  if (tsA == null || tsB == null) return 0;
+                  return tsB.compareTo(tsA);
+                });
+
+                if (docs.isEmpty) {
+                  return Card(
+                    color: Colors.grey.shade50,
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      side: BorderSide(color: Colors.grey.shade200),
+                    ),
+                    child: const Padding(
+                      padding: EdgeInsets.all(16.0),
+                      child: Text(
+                        "You haven't logged your learning mood yet.",
+                        style: TextStyle(color: Colors.grey),
+                      ),
+                    ),
+                  );
+                }
+
+                return ListView.separated(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  itemCount: docs.length > 5 ? 5 : docs.length, // Show up to 5 recent moods
+                  separatorBuilder: (_, __) => const SizedBox(height: 8),
+                  itemBuilder: (context, index) {
+                    final data = docs[index].data() as Map<String, dynamic>;
+                    final moodValue = data['moodValue'] as int? ?? 3;
+                    final note = data['note'] as String? ?? '';
+                    final timestamp = (data['timestamp'] as Timestamp?)?.toDate();
+                    
+                    String emoji = '😐';
+                    Color moodColor = Colors.grey;
+                    switch (moodValue) {
+                      case 1: emoji = '😫'; moodColor = Colors.red.shade400; break;
+                      case 2: emoji = '😕'; moodColor = Colors.orange.shade400; break;
+                      case 3: emoji = '😐'; moodColor = Colors.blueGrey; break;
+                      case 4: emoji = '🙂'; moodColor = Colors.lightGreen; break;
+                      case 5: emoji = '😃'; moodColor = Colors.green; break;
+                    }
+
+                    final dateStr = timestamp != null
+                        ? '${timestamp.day}/${timestamp.month}/${timestamp.year}'
+                        : 'Unknown Date';
+
+                    return Card(
+                      elevation: 0,
+                      color: moodColor.withOpacity(0.1),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        side: BorderSide(color: moodColor.withOpacity(0.3)),
+                      ),
+                      child: ListTile(
+                        leading: Text(emoji, style: const TextStyle(fontSize: 28)),
+                        title: Text(
+                          dateStr,
+                          style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
+                        ),
+                        subtitle: note.isNotEmpty ? Text(note) : null,
+                      ),
+                    );
+                  },
+                );
+              },
+            ),
+            const SizedBox(height: 32),
+          ],
 
           // Logout Button
           SizedBox(
