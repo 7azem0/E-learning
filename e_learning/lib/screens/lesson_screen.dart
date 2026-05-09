@@ -13,8 +13,6 @@ import '../services/enrollment_service.dart';
 import 'lesson_screen_stub.dart'
     if (dart.library.html) 'lesson_screen_web.dart'
     as webHelper;
-import 'dart:html' as html;
-import 'dart:ui_web' as ui;
 
 class LessonScreen extends StatefulWidget {
   final String courseId;
