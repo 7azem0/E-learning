@@ -125,15 +125,20 @@ class _HomeScreenState extends State<HomeScreen> {
               ],
             ),
             const SizedBox(height: 16),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                _buildMoodEmoji(1, '😫'),
-                _buildMoodEmoji(2, '😕'),
-                _buildMoodEmoji(3, '😐'),
-                _buildMoodEmoji(4, '🙂'),
-                _buildMoodEmoji(5, '😃'),
-              ],
+            SizedBox(
+              width: double.infinity,
+              child: Wrap(
+                alignment: WrapAlignment.spaceEvenly,
+                spacing: 4,
+                runSpacing: 8,
+                children: [
+                  _buildMoodEmoji(1, '😫'),
+                  _buildMoodEmoji(2, '😕'),
+                  _buildMoodEmoji(3, '😐'),
+                  _buildMoodEmoji(4, '🙂'),
+                  _buildMoodEmoji(5, '😃'),
+                ],
+              ),
             ),
             if (_selectedMood != null) ...[
               const SizedBox(height: 16),
@@ -181,7 +186,7 @@ class _HomeScreenState extends State<HomeScreen> {
       },
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.all(12),
+        padding: const EdgeInsets.all(8), // Reduced padding
         decoration: BoxDecoration(
           color: isSelected ? const Color(0xFF6366F1).withOpacity(0.1) : Colors.transparent,
           shape: BoxShape.circle,
@@ -193,7 +198,7 @@ class _HomeScreenState extends State<HomeScreen> {
         child: Text(
           emoji,
           style: TextStyle(
-            fontSize: isSelected ? 32 : 28,
+            fontSize: isSelected ? 28 : 24, // Reduced font size
             color: isSelected ? null : Colors.grey.shade400,
           ),
         ),
