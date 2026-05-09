@@ -3,8 +3,203 @@
 import 'package:flutter/material.dart';
 import '../widgets/menu.dart';
 
-class HomeScreen extends StatelessWidget {
+import '../services/mood_tracking_service.dart';
+
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
+
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  bool _hasLoggedMood = true;
+  bool _isLoadingMood = true;
+  int? _selectedMood;
+  final TextEditingController _noteController = TextEditingController();
+  bool _isSubmittingMood = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkMoodStatus();
+  }
+
+  @override
+  void dispose() {
+    _noteController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _checkMoodStatus() async {
+    final hasLogged = await MoodTrackingService().hasLoggedMoodToday();
+    if (mounted) {
+      setState(() {
+        _hasLoggedMood = hasLogged;
+        _isLoadingMood = false;
+      });
+    }
+  }
+
+  Future<void> _submitMood() async {
+    if (_selectedMood == null) return;
+    
+    setState(() => _isSubmittingMood = true);
+    
+    await MoodTrackingService().logMood(
+      _selectedMood!,
+      _noteController.text.trim(),
+    );
+    
+    if (mounted) {
+      setState(() {
+        _hasLoggedMood = true;
+        _isSubmittingMood = false;
+      });
+      
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('Mood logged successfully! Have a great day learning.'),
+          backgroundColor: Colors.green.shade600,
+        ),
+      );
+    }
+  }
+
+  Widget _buildMoodTracker() {
+    if (_isLoadingMood) {
+      return const Padding(
+        padding: EdgeInsets.symmetric(vertical: 20),
+        child: Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    if (_hasLoggedMood) {
+      return Card(
+        color: Colors.green.shade50,
+        elevation: 0,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+          side: BorderSide(color: Colors.green.shade200),
+        ),
+        child: const Padding(
+          padding: EdgeInsets.all(16.0),
+          child: Row(
+            children: [
+              Icon(Icons.check_circle, color: Colors.green),
+              SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  "You've logged your mood today. Keep up the great work!",
+                  style: TextStyle(color: Colors.green, fontWeight: FontWeight.w600),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    return Card(
+      elevation: 0,
+      color: const Color(0xFFFAFAF8),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+        side: BorderSide(color: Colors.grey.shade300),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(20.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                const Icon(Icons.mood, color: Color(0xFF6366F1)),
+                const SizedBox(width: 8),
+                Text(
+                  "How are you feeling today?",
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                _buildMoodEmoji(1, '😫'),
+                _buildMoodEmoji(2, '😕'),
+                _buildMoodEmoji(3, '😐'),
+                _buildMoodEmoji(4, '🙂'),
+                _buildMoodEmoji(5, '😃'),
+              ],
+            ),
+            if (_selectedMood != null) ...[
+              const SizedBox(height: 16),
+              TextField(
+                controller: _noteController,
+                decoration: InputDecoration(
+                  hintText: 'Any brief thoughts? (Optional)',
+                  isDense: true,
+                  filled: true,
+                  fillColor: Colors.white,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: BorderSide(color: Colors.grey.shade300),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: _isSubmittingMood ? null : _submitMood,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF6366F1),
+                    foregroundColor: Colors.white,
+                  ),
+                  child: _isSubmittingMood
+                      ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                      : const Text('Log Mood'),
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMoodEmoji(int value, String emoji) {
+    final isSelected = _selectedMood == value;
+    return GestureDetector(
+      onTap: () {
+        setState(() {
+          _selectedMood = value;
+        });
+      },
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: isSelected ? const Color(0xFF6366F1).withOpacity(0.1) : Colors.transparent,
+          shape: BoxShape.circle,
+          border: Border.all(
+            color: isSelected ? const Color(0xFF6366F1) : Colors.transparent,
+            width: 2,
+          ),
+        ),
+        child: Text(
+          emoji,
+          style: TextStyle(
+            fontSize: isSelected ? 32 : 28,
+            color: isSelected ? null : Colors.grey.shade400,
+          ),
+        ),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -66,6 +261,8 @@ class HomeScreen extends StatelessWidget {
               ],
             ),
           ),
+          const SizedBox(height: 24),
+          _buildMoodTracker(),
           const SizedBox(height: 24),
           Text(
             "Today’s syllabus",
