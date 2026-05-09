@@ -579,21 +579,13 @@ class _HomeScreenState extends State<HomeScreen> {
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
           ),
-          StreamBuilder<List<String>>(
-            stream: EnrollmentService().getCompletedLessons(course['id']),
+          StreamBuilder<CourseProgressData>(
+            stream: EnrollmentService().getCourseProgressData(course['id']),
             builder: (context, snapshot) {
-              final completed = snapshot.data?.length ?? 0;
-              final total = course['lessonCount'] as int? ?? 0;
-              
-              // If lessonCount is missing or 0, we should sync it in the background
-              if (total == 0) {
-                AdminService().syncLessonCount(course['id']);
-              }
-
-              // Use max(1, total) to avoid division by zero, and ensure progress 
-              // is 0 if total is 0 (pending sync)
-              final effectiveTotal = total > 0 ? total : (completed > 0 ? completed : 1);
-              final progress = (completed / effectiveTotal).clamp(0.0, 1.0);
+              final data = snapshot.data;
+              final completed = data?.completed ?? 0;
+              final total = data?.total ?? 0;
+              final progress = data?.percentage ?? 0.0;
               final progressPercent = (progress * 100).toInt();
 
               return Column(
@@ -602,7 +594,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   Text(
                     total > 0 
                       ? "Progress: $progressPercent% ($completed/$total)"
-                      : "Progress: $progressPercent%",
+                      : "Progress: 0%",
                     style: const TextStyle(color: Color(0xFF64748B), fontSize: 11),
                   ),
                   const SizedBox(height: 8),

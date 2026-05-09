@@ -1,6 +1,7 @@
 // ignore_for_file: undefined_hidden_name
 
 import 'package:e_learning/firebase_options.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:e_learning/screens/admin_panel_screen.dart' hide ElevatedButton;
 import 'package:e_learning/widgets/auth_wrapper.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -21,6 +22,13 @@ import 'services/authentication_service.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  
+  // Enable offline persistence for Firestore
+  FirebaseFirestore.instance.settings = const Settings(
+    persistenceEnabled: true,
+    cacheSizeBytes: Settings.CACHE_SIZE_UNLIMITED,
+  );
+  
   await AuthService().initialize();
   runApp(const ELearningApp());
 }

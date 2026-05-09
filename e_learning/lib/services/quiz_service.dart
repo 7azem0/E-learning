@@ -12,7 +12,7 @@ class QuizService {
   factory QuizService() => _instance;
   QuizService._internal();
 
-  static const String _apiKey = 'AIzaSyCaCzCOGz5z4iqbrVkDD3H8nej_D6SfhZc';
+  static const String _apiKey = 'AIzaSyAOy8UlaGrEMPfPspXoS6fXCEUiVVadFCs';
   static const String _apiUrl =
     'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent';
 

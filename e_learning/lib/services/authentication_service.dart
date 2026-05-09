@@ -2,6 +2,7 @@
 
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'dart:typed_data';
 import '../global_state.dart';
 
@@ -33,8 +34,6 @@ class User {
       isAdmin: data['isAdmin'] ?? false,
     );
   }
-
-  Uint8List? get avatar => null;
 
   Map<String, dynamic> toFirestore() {
     return {
@@ -81,6 +80,8 @@ class AuthService {
         _currentUser = User.fromFirestore(doc);
         // Ensure role state is updated for global access
         roleNotifier.value = _currentUser?.isAdmin == true ? 'admin' : 'student';
+      } else {
+        roleNotifier.value = 'student';
       }
     } catch (e) {
       print('Error loading user data: $e');
@@ -157,11 +158,23 @@ class AuthService {
   Future<String> updateCurrentUser({
     required String name,
     required String email,
-    String? avatarUrl,
     Uint8List? avatar,
   }) async {
     try {
       if (firebaseUser == null) return 'No logged-in user';
+
+      String? avatarUrl = _currentUser?.avatarUrl;
+
+      // Upload avatar if provided
+      if (avatar != null) {
+        final ref = FirebaseStorage.instance
+            .ref()
+            .child('profile_pictures')
+            .child('${firebaseUser!.uid}.jpg');
+        
+        await ref.putData(avatar, SettableMetadata(contentType: 'image/jpeg'));
+        avatarUrl = await ref.getDownloadURL();
+      }
 
       // Update email if changed
       if (email != firebaseUser!.email) {
@@ -182,10 +195,12 @@ class AuthService {
           .collection('users')
           .doc(firebaseUser!.uid)
           .update(updatedUser.toFirestore());
+      
       _currentUser = updatedUser;
       return 'Success';
     } catch (e) {
-      return 'Failed to update profile';
+      print('Error updating profile: $e');
+      return 'Failed to update profile: $e';
     }
   }
 

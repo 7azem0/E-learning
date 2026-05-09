@@ -128,9 +128,9 @@ class AdminService {
     int? color,
   }) async {
     try {
-      final updateData = {'title': title, 'description': description};
+      final Map<String, dynamic> updateData = {'title': title, 'description': description};
       if (icon != null) updateData['icon'] = icon;
-      if (color != null) updateData['color'] = color as String;
+      if (color != null) updateData['color'] = color;
 
       await _firestore.collection('courses').doc(courseId).update(updateData);
       return 'Success';

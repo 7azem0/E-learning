@@ -10,6 +10,8 @@ import '../services/authentication_service.dart';
 import '../services/discussion_service.dart';
 import '../services/activity_service.dart';
 import '../services/enrollment_service.dart';
+import '../services/offline_service.dart';
+import '../services/notes_service.dart';
 import 'lesson_screen_stub.dart'
     if (dart.library.html) 'lesson_screen_web.dart'
     as webHelper;
@@ -50,6 +52,7 @@ class _LessonScreenState extends State<LessonScreen>
     super.initState();
     if (widget.videoUrl != null) _tabs.add(const Tab(text: 'Video'));
     if (widget.pdfUrl != null) _tabs.add(const Tab(text: 'PDF'));
+    _tabs.add(const Tab(text: 'Notes'));
     _tabs.add(const Tab(text: 'Discussion'));
     _tabController = TabController(length: _tabs.length, vsync: this);
 
@@ -82,6 +85,12 @@ class _LessonScreenState extends State<LessonScreen>
           style: const TextStyle(fontWeight: FontWeight.bold),
         ),
         actions: [
+          if (!kIsWeb) _DownloadButton(
+            courseId: widget.courseId,
+            lessonId: widget.lessonId,
+            pdfUrl: widget.pdfUrl,
+            videoUrl: widget.videoUrl,
+          ),
           StreamBuilder<List<String>>(
             stream: EnrollmentService().getCompletedLessons(widget.courseId),
             builder: (context, snapshot) {
@@ -158,6 +167,13 @@ class _LessonScreenState extends State<LessonScreen>
         lessonId: widget.lessonId,
         courseColor: widget.courseColor,
       );
+    } else if (type == 'Notes') {
+      return _LessonNotes(
+        courseId: widget.courseId,
+        sectionId: widget.sectionId,
+        lessonId: widget.lessonId,
+        courseColor: widget.courseColor,
+      );
     }
     return _NoLessonContent();
   }
@@ -177,6 +193,13 @@ class _LessonScreenState extends State<LessonScreen>
       return _PdfViewerWidget(url: widget.pdfUrl!);
     } else if (type == 'Discussion') {
       return _LessonDiscussion(
+        courseId: widget.courseId,
+        sectionId: widget.sectionId,
+        lessonId: widget.lessonId,
+        courseColor: widget.courseColor,
+      );
+    } else if (type == 'Notes') {
+      return _LessonNotes(
         courseId: widget.courseId,
         sectionId: widget.sectionId,
         lessonId: widget.lessonId,
@@ -231,6 +254,21 @@ class _PdfViewerWidgetState extends State<_PdfViewerWidget> {
 
   Future<void> _loadPdf() async {
     try {
+      // Check for offline version first
+      final offlinePath = await OfflineService().getLocalPath(
+        (context.findAncestorWidgetOfExactType<LessonScreen>()!).courseId,
+        (context.findAncestorWidgetOfExactType<LessonScreen>()!).lessonId,
+        'pdf',
+      );
+
+      if (offlinePath != null) {
+        setState(() {
+          _localPath = offlinePath;
+          _isLoading = false;
+        });
+        return;
+      }
+
       final response = await http.get(Uri.parse(widget.url));
       if (response.statusCode == 200) {
         final dir = await getTemporaryDirectory();
@@ -290,20 +328,66 @@ class _PdfViewerWidgetState extends State<_PdfViewerWidget> {
         if (_totalPages > 0)
           Positioned(
             bottom: 20,
+            left: 20,
             right: 20,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-              decoration: BoxDecoration(
-                color: Colors.black.withOpacity(0.7),
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: Text(
-                '${_currentPage + 1} / $_totalPages',
-                style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-              ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: Colors.black.withOpacity(0.7),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Text(
+                    '${_currentPage + 1} / $_totalPages',
+                    style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                  ),
+                ),
+                FloatingActionButton.small(
+                  heroTag: 'pdf_note',
+                  backgroundColor: Colors.white,
+                  child: const Icon(Icons.note_add, color: Colors.blue),
+                  onPressed: () => _showAddNoteDialog(context, page: _currentPage + 1),
+                ),
+              ],
             ),
           ),
       ],
+    );
+  }
+
+  void _showAddNoteDialog(BuildContext context, {int? page}) {
+    final lessonScreen = context.findAncestorWidgetOfExactType<LessonScreen>()!;
+    final controller = TextEditingController();
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(page != null ? 'Add Note (Page $page)' : 'Add Note'),
+        content: TextField(
+          controller: controller,
+          maxLines: 3,
+          decoration: const InputDecoration(hintText: 'Enter your note...'),
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+          ElevatedButton(
+            onPressed: () async {
+              if (controller.text.trim().isNotEmpty) {
+                await NotesService().addNote(
+                  courseId: lessonScreen.courseId,
+                  sectionId: lessonScreen.sectionId,
+                  lessonId: lessonScreen.lessonId,
+                  content: controller.text.trim(),
+                  pdfPage: page,
+                );
+                if (ctx.mounted) Navigator.pop(ctx);
+              }
+            },
+            child: const Text('Save'),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -332,9 +416,19 @@ class _VideoPlayerWidgetState extends State<_VideoPlayerWidget> {
 
   Future<void> _initPlayer() async {
     try {
-      _videoController = VideoPlayerController.networkUrl(
-        Uri.parse(widget.url),
+      final lessonScreen = context.findAncestorWidgetOfExactType<LessonScreen>()!;
+      final offlinePath = await OfflineService().getLocalPath(
+        lessonScreen.courseId,
+        lessonScreen.lessonId,
+        'video',
       );
+
+      if (offlinePath != null) {
+        _videoController = VideoPlayerController.file(File(offlinePath));
+      } else {
+        _videoController = VideoPlayerController.networkUrl(Uri.parse(widget.url));
+      }
+
       _hasVideoController = true;
       await _videoController.initialize();
       _chewieController = ChewieController(
@@ -373,7 +467,64 @@ class _VideoPlayerWidgetState extends State<_VideoPlayerWidget> {
     if (_error != null) {
       return Center(child: Text(_error!));
     }
-    return Chewie(controller: _chewieController!);
+    return Stack(
+      children: [
+        Chewie(controller: _chewieController!),
+        Positioned(
+          top: 10,
+          right: 10,
+          child: FloatingActionButton.small(
+            heroTag: 'video_note',
+            backgroundColor: Colors.white.withOpacity(0.5),
+            child: const Icon(Icons.note_add, color: Colors.blue),
+            onPressed: () => _showAddNoteDialog(context),
+          ),
+        ),
+      ],
+    );
+  }
+
+  void _showAddNoteDialog(BuildContext context) {
+    final lessonScreen = context.findAncestorWidgetOfExactType<LessonScreen>()!;
+    final controller = TextEditingController();
+    final currentPos = _videoController.value.position;
+    
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text('Add Note at ${_formatDuration(currentPos)}'),
+        content: TextField(
+          controller: controller,
+          maxLines: 3,
+          decoration: const InputDecoration(hintText: 'Enter your note...'),
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+          ElevatedButton(
+            onPressed: () async {
+              if (controller.text.trim().isNotEmpty) {
+                await NotesService().addNote(
+                  courseId: lessonScreen.courseId,
+                  sectionId: lessonScreen.sectionId,
+                  lessonId: lessonScreen.lessonId,
+                  content: controller.text.trim(),
+                  videoTimestamp: currentPos.inSeconds.toDouble(),
+                );
+                if (ctx.mounted) Navigator.pop(ctx);
+              }
+            },
+            child: const Text('Save'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  String _formatDuration(Duration duration) {
+    String twoDigits(int n) => n.toString().padLeft(2, "0");
+    String twoDigitMinutes = twoDigits(duration.inMinutes.remainder(60));
+    String twoDigitSeconds = twoDigits(duration.inSeconds.remainder(60));
+    return "${twoDigits(duration.inHours)}:$twoDigitMinutes:$twoDigitSeconds";
   }
 }
 
@@ -703,6 +854,292 @@ class _Composer extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+class _LessonNotes extends StatefulWidget {
+  final String courseId;
+  final String sectionId;
+  final String lessonId;
+  final Color courseColor;
+
+  const _LessonNotes({
+    required this.courseId,
+    required this.sectionId,
+    required this.lessonId,
+    required this.courseColor,
+  });
+
+  @override
+  State<_LessonNotes> createState() => _LessonNotesState();
+}
+
+class _LessonNotesState extends State<_LessonNotes> {
+  late Stream<List<LessonNote>> _notesStream;
+
+  @override
+  void initState() {
+    super.initState();
+    _notesStream = NotesService().getMyNotes(
+      courseId: widget.courseId,
+      sectionId: widget.sectionId,
+      lessonId: widget.lessonId,
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return StreamBuilder<List<LessonNote>>(
+      stream: _notesStream,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        }
+
+        final notes = snapshot.data ?? [];
+        if (notes.isEmpty) {
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.note_alt_outlined, size: 64, color: Colors.grey.shade300),
+                const SizedBox(height: 16),
+                const Text('No notes yet. Add notes while watching or reading!'),
+              ],
+            ),
+          );
+        }
+
+        // Sort manually since we removed orderBy from Firestore
+        notes.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+
+        return ListView.builder(
+          padding: const EdgeInsets.all(16),
+          itemCount: notes.length,
+          itemBuilder: (context, index) {
+            final note = notes[index];
+            return Card(
+              margin: const EdgeInsets.only(bottom: 12),
+              child: ListTile(
+                title: Text(note.content),
+                subtitle: Text(
+                  note.videoTimestamp != null
+                      ? 'At timestamp: ${_formatTimestamp(note.videoTimestamp!)}'
+                      : note.pdfPage != null
+                          ? 'On page: ${note.pdfPage}'
+                          : 'General note',
+                ),
+                trailing: IconButton(
+                  icon: const Icon(Icons.delete_outline, color: Colors.red),
+                  onPressed: () => NotesService().deleteNote(
+                    widget.courseId, 
+                    widget.sectionId, 
+                    widget.lessonId, 
+                    note.id,
+                  ),
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  String _formatTimestamp(double seconds) {
+    final d = Duration(seconds: seconds.toInt());
+    String twoDigits(int n) => n.toString().padLeft(2, "0");
+    return "${twoDigits(d.inHours)}:${twoDigits(d.inMinutes.remainder(60))}:${twoDigits(d.inSeconds.remainder(60))}";
+  }
+}
+
+class _DownloadButton extends StatefulWidget {
+  final String courseId;
+  final String lessonId;
+  final String? pdfUrl;
+  final String? videoUrl;
+
+  const _DownloadButton({
+    required this.courseId,
+    required this.lessonId,
+    this.pdfUrl,
+    this.videoUrl,
+  });
+
+  @override
+  State<_DownloadButton> createState() => _DownloadButtonState();
+}
+
+class _DownloadButtonState extends State<_DownloadButton> {
+  bool _isPdfDownloaded = false;
+  bool _isVideoDownloaded = false;
+  double _pdfProgress = 0;
+  double _videoProgress = 0;
+  bool _isDownloadingPdf = false;
+  bool _isDownloadingVideo = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkStatus();
+  }
+
+  Future<void> _checkStatus() async {
+    final pdf = await OfflineService().isDownloaded(widget.courseId, widget.lessonId, 'pdf');
+    final video = await OfflineService().isDownloaded(widget.courseId, widget.lessonId, 'video');
+    if (mounted) {
+      setState(() {
+        _isPdfDownloaded = pdf;
+        _isVideoDownloaded = video;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isDownloading = _isDownloadingPdf || _isDownloadingVideo;
+    final totalProgress = (_isDownloadingPdf && _isDownloadingVideo)
+        ? (_pdfProgress + _videoProgress) / 2
+        : _isDownloadingPdf
+            ? _pdfProgress
+            : _videoProgress;
+
+    return PopupMenuButton<String>(
+      icon: Stack(
+        alignment: Alignment.center,
+        children: [
+          const Icon(Icons.download_for_offline, color: Colors.white),
+          if (isDownloading)
+            SizedBox(
+              width: 24,
+              height: 24,
+              child: CircularProgressIndicator(
+                value: totalProgress > 0 ? totalProgress : null,
+                strokeWidth: 2,
+                color: Colors.white,
+              ),
+            ),
+        ],
+      ),
+      onSelected: (type) async {
+        if (type == 'pdf' && widget.pdfUrl != null) {
+          if (_isPdfDownloaded) {
+            await OfflineService().removeDownload(widget.courseId, widget.lessonId, 'pdf');
+            if (mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('PDF removed from offline storage')),
+              );
+            }
+          } else {
+            setState(() => _isDownloadingPdf = true);
+            try {
+              await OfflineService().downloadLesson(
+                courseId: widget.courseId,
+                lessonId: widget.lessonId,
+                url: widget.pdfUrl!,
+                type: 'pdf',
+                onProgress: (p) => setState(() => _pdfProgress = p),
+              );
+              if (mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('PDF download complete!')),
+                );
+              }
+            } catch (e) {
+              if (mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('PDF download failed: $e')),
+                );
+              }
+            }
+            if (mounted) setState(() => _isDownloadingPdf = false);
+          }
+        } else if (type == 'video' && widget.videoUrl != null) {
+          if (_isVideoDownloaded) {
+            await OfflineService().removeDownload(widget.courseId, widget.lessonId, 'video');
+            if (mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Video removed from offline storage')),
+              );
+            }
+          } else {
+            setState(() => _isDownloadingVideo = true);
+            try {
+              await OfflineService().downloadLesson(
+                courseId: widget.courseId,
+                lessonId: widget.lessonId,
+                url: widget.videoUrl!,
+                type: 'video',
+                onProgress: (p) => setState(() => _videoProgress = p),
+              );
+              if (mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Video download complete!')),
+                );
+              }
+            } catch (e) {
+              if (mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('Video download failed: $e')),
+                );
+              }
+            }
+            if (mounted) setState(() => _isDownloadingVideo = false);
+          }
+        }
+        _checkStatus();
+      },
+      itemBuilder: (context) => [
+        if (widget.pdfUrl != null)
+          PopupMenuItem(
+            value: 'pdf',
+            child: Row(
+              children: [
+                Icon(_isPdfDownloaded ? Icons.delete : Icons.picture_as_pdf, 
+                     color: _isPdfDownloaded ? Colors.red : Colors.blue),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(_isPdfDownloaded ? 'Remove PDF' : 'Download PDF'),
+                      if (_isDownloadingPdf)
+                        LinearProgressIndicator(value: _pdfProgress),
+                    ],
+                  ),
+                ),
+                if (_isDownloadingPdf)
+                  Text(' ${(_pdfProgress * 100).toInt()}%', style: const TextStyle(fontSize: 10)),
+              ],
+            ),
+          ),
+        if (widget.videoUrl != null)
+          PopupMenuItem(
+            value: 'video',
+            child: Row(
+              children: [
+                Icon(_isVideoDownloaded ? Icons.delete : Icons.play_circle, 
+                     color: _isVideoDownloaded ? Colors.red : Colors.blue),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(_isVideoDownloaded ? 'Remove Video' : 'Download Video'),
+                      if (_isDownloadingVideo)
+                        LinearProgressIndicator(value: _videoProgress),
+                    ],
+                  ),
+                ),
+                if (_isDownloadingVideo)
+                  Text(' ${(_videoProgress * 100).toInt()}%', style: const TextStyle(fontSize: 10)),
+              ],
+            ),
+          ),
+      ],
     );
   }
 }

@@ -1,6 +1,14 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../services/authentication_service.dart';
 import '../services/achievement_service.dart';
+import 'package:rxdart/rxdart.dart';
+
+class CourseProgressData {
+  final int completed;
+  final int total;
+  double get percentage => total == 0 ? 0 : (completed / total).clamp(0, 1);
+  CourseProgressData({required this.completed, required this.total});
+}
 
 class EnrollmentService {
   static final EnrollmentService _instance = EnrollmentService._internal();
@@ -129,10 +137,24 @@ class EnrollmentService {
         .map((snapshot) => snapshot.docs.map((doc) => doc.id).toList());
   }
 
-  Stream<double> getCourseProgress(String courseId, int totalLessons) {
-    if (totalLessons == 0) return Stream.value(0.0);
-    return getCompletedLessons(courseId).map((completed) {
-      return completed.length / totalLessons;
+  Stream<int> streamTotalLessons(String courseId) {
+    return _firestore.collection('courses/$courseId/sections').snapshots().asyncMap((snapshot) async {
+      int total = 0;
+      for (var doc in snapshot.docs) {
+        final lessons = await _firestore.collection('courses/$courseId/sections/${doc.id}/lessons').get();
+        total += lessons.docs.length;
+      }
+      // Also update the cached lessonCount in the course document for consistency
+      _firestore.collection('courses').doc(courseId).update({'lessonCount': total}).catchError((_) {});
+      return total;
     });
+  }
+
+  Stream<CourseProgressData> getCourseProgressData(String courseId) {
+    return Rx.combineLatest2<List<String>, int, CourseProgressData>(
+      getCompletedLessons(courseId),
+      streamTotalLessons(courseId),
+      (completed, total) => CourseProgressData(completed: completed.length, total: total),
+    );
   }
 }

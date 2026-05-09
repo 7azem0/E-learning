@@ -37,7 +37,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       _currentUser = current;
       _nameController.text = current.name;
       _emailController.text = current.email;
-      _avatarBytes = current.avatar;
+      _avatarBytes = null; // We use avatarUrl instead
     }
   }
 
@@ -171,8 +171,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   child: CircleAvatar(
                     radius: 60,
                     backgroundColor: const Color(0xFF6366F1),
-                    backgroundImage: _avatarBytes != null ? MemoryImage(_avatarBytes!) : null,
-                    child: _avatarBytes == null
+                    backgroundImage: _avatarBytes != null 
+                        ? MemoryImage(_avatarBytes!) 
+                        : (_currentUser?.avatarUrl != null 
+                            ? NetworkImage(_currentUser!.avatarUrl!) 
+                            : null) as ImageProvider?,
+                    child: (_avatarBytes == null && _currentUser?.avatarUrl == null)
                         ? const Icon(Icons.person, size: 60, color: Colors.white)
                         : null,
                   ),
