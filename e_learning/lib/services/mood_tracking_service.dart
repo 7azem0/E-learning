@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../services/achievement_service.dart';
+import '../services/activity_service.dart';
 
 class MoodTrackingService {
   static final MoodTrackingService _instance = MoodTrackingService._internal();
@@ -25,6 +26,7 @@ class MoodTrackingService {
       });
 
       await AchievementService().checkAndUnlockBadge('mood_logger');
+      await ActivityService().logActivity(type: 'mood_logged');
 
       return 'Success';
     } catch (e) {
@@ -44,7 +46,10 @@ class MoodTrackingService {
       final snapshot = await _firestore
           .collection('learning_moods')
           .where('userId', isEqualTo: user.uid)
-          .where('timestamp', isGreaterThanOrEqualTo: Timestamp.fromDate(startOfDay))
+          .where(
+            'timestamp',
+            isGreaterThanOrEqualTo: Timestamp.fromDate(startOfDay),
+          )
           .get();
 
       return snapshot.docs.isNotEmpty;
