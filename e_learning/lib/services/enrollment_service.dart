@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../services/authentication_service.dart';
+import '../services/achievement_service.dart';
 
 class EnrollmentService {
   static final EnrollmentService _instance = EnrollmentService._internal();
@@ -33,6 +34,10 @@ class EnrollmentService {
             'email': user.email,
             'createdAt': Timestamp.now(),
           });
+          
+      // Check for achievement
+      await AchievementService().checkAndUnlockBadge('first_enrollment');
+      
       return 'Success';
     } catch (e) {
       return 'Failed to enroll';
