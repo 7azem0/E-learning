@@ -1,9 +1,14 @@
 // ignore_for_file: deprecated_member_use
 
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../widgets/menu.dart';
 
 import '../services/mood_tracking_service.dart';
+import '../services/authentication_service.dart';
+import '../services/enrollment_service.dart';
+import 'course_detail_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -203,152 +208,551 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final user = AuthService().currentUser;
+    final now = DateTime.now();
+    final dateStr = "${now.day} ${_getMonth(now.month)}, ${now.year}";
+
     return Scaffold(
-      appBar: AppBar(
-        elevation: 0,
-        title: const Text("EduHub"),
-        bottom: const PreferredSize(
-          preferredSize: Size.fromHeight(1),
-          child: Divider(height: 1),
-        ),
-      ),
+      backgroundColor: const Color(0xFFF8FAFC),
       drawer: const Menu(),
-      body: ListView(
-        padding: const EdgeInsets.all(20),
-        children: [
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.only(bottom: 24),
-            decoration: const BoxDecoration(
-              border: Border(bottom: BorderSide(color: Color(0xFF111111))),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  "Computer Science Review",
-                  style: TextStyle(
-                    fontSize: 13,
-                    letterSpacing: 0.8,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-                const SizedBox(height: 14),
-                Text(
-                  "Learn Computer Science With Course Dispatches",
-                  style: Theme.of(context).textTheme.headlineLarge?.copyWith(
-                    color: Colors.black,
-                    fontWeight: FontWeight.bold,
-                    height: 1.05,
-                  ),
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  "Programming, AI, and data science lessons organized with a quieter editorial rhythm.",
-                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                    color: Colors.grey.shade800,
-                    height: 1.4,
-                  ),
-                ),
-                const SizedBox(height: 24),
-                ElevatedButton.icon(
-                  onPressed: () {
+      body: CustomScrollView(
+        slivers: [
+          _buildSliverAppBar(user, dateStr),
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(20, 24, 20, 40),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildStudyPlannerCTA(),
+                  _buildVisualCatalogCTA(),
+                  const SizedBox(height: 32),
+                  _buildSectionHeader("My Learning", () {
                     Navigator.pushNamed(context, '/courses');
-                  },
-                  icon: const Icon(Icons.arrow_forward),
-                  label: const Text("Explore Courses"),
-                ),
-              ],
+                  }),
+                  const SizedBox(height: 16),
+                  _buildEnrolledCourses(),
+                  const SizedBox(height: 32),
+                  _buildSectionHeader("Daily Check-in", null),
+                  const SizedBox(height: 16),
+                  _buildMoodTracker(),
+                  const SizedBox(height: 32),
+                  _buildQuickStats(),
+                ],
+              ),
             ),
-          ),
-          const SizedBox(height: 24),
-          _buildMoodTracker(),
-          const SizedBox(height: 24),
-          Text(
-            "Today’s syllabus",
-            style: Theme.of(
-              context,
-            ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            "Enroll in courses, read instructor announcements, and continue into lessons from the Courses section.",
-            style: TextStyle(color: Colors.grey.shade700, height: 1.4),
           ),
         ],
       ),
     );
   }
-}
 
-// Reusable Modern Course Card Widget
-class CourseCardItem extends StatelessWidget {
-  final IconData icon;
-  final String title;
-  final String description;
-  final Color color;
-
-  const CourseCardItem({
-    super.key,
-    required this.icon,
-    required this.title,
-    required this.description,
-    required this.color,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      child: Container(
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(16),
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [color.withOpacity(0.1), color.withOpacity(0.05)],
-          ),
+  Widget _buildSliverAppBar(user, String dateStr) {
+    return SliverAppBar(
+      expandedHeight: 200.0,
+      floating: false,
+      pinned: true,
+      elevation: 0,
+      backgroundColor: Colors.white,
+      leading: Builder(
+        builder: (context) => IconButton(
+          icon: const Icon(Icons.menu, color: Color(0xFF1E293B)),
+          onPressed: () => Scaffold.of(context).openDrawer(),
         ),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Row(
+      ),
+      flexibleSpace: FlexibleSpaceBar(
+        centerTitle: false,
+        background: Container(
+          color: Colors.white,
+          padding: const EdgeInsets.symmetric(horizontal: 24),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Container(
-                width: 60,
-                height: 60,
-                decoration: BoxDecoration(
-                  color: color.withOpacity(0.2),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Icon(icon, size: 32, color: color),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      title,
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      description,
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: Colors.grey.shade600,
-                      ),
-                    ),
-                  ],
+              const SizedBox(height: 60),
+              Text(
+                "Hi, ${user?.name ?? 'Scholar'}!",
+                style: GoogleFonts.playfairDisplay(
+                  color: const Color(0xFF1E293B),
+                  fontSize: 42,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: -0.5,
                 ),
               ),
-              Icon(Icons.chevron_right, color: color),
+              const SizedBox(height: 12),
+              Text(
+                "\"The stars and moon were relentless, even on nights when someone died, they glittered majestically.\"",
+                style: GoogleFonts.ebGaramond(
+                  color: const Color(0xFF64748B),
+                  fontSize: 20,
+                  fontStyle: FontStyle.italic,
+                  height: 1.3,
+                ),
+              ),
             ],
           ),
         ),
       ),
+      actions: [
+        Padding(
+          padding: const EdgeInsets.only(right: 20),
+          child: GestureDetector(
+            onTap: () => Navigator.pushNamed(context, '/profile'),
+            child: CircleAvatar(
+              backgroundColor: const Color(0xFF6366F1).withOpacity(0.1),
+              child: const Icon(Icons.person, color: Color(0xFF6366F1), size: 20),
+            ),
+          ),
+        ),
+      ],
     );
   }
+
+  Widget _buildStudyPlannerCTA() {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [Color(0xFF6366F1), Color(0xFF4F46E5)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF6366F1).withOpacity(0.3),
+            blurRadius: 20,
+            offset: const Offset(0, 10),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.2),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Icon(Icons.auto_awesome, color: Colors.white, size: 24),
+              ),
+              const SizedBox(width: 12),
+              const Text(
+                "AI Smart Planner",
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 20),
+          const Text(
+            "Ready to master your syllabus?",
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 22,
+              fontWeight: FontWeight.bold,
+              height: 1.2,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            "Let Gemini create a personalized study schedule based on your enrolled courses and available time.",
+            style: TextStyle(
+              color: Colors.white.withOpacity(0.9),
+              fontSize: 14,
+              height: 1.4,
+            ),
+          ),
+          const SizedBox(height: 24),
+          ElevatedButton(
+            onPressed: () => Navigator.pushNamed(context, '/study_planner'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.white,
+              foregroundColor: const Color(0xFF6366F1),
+              elevation: 0,
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+            child: const Text(
+              "Generate Plan",
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSectionHeader(String title, VoidCallback? onSeeAll, {String? actionLabel}) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(
+          title,
+          style: const TextStyle(
+            color: Color(0xFF1E293B),
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        if (onSeeAll != null)
+          TextButton(
+            onPressed: onSeeAll,
+            child: Text(
+              actionLabel ?? "See all",
+              style: const TextStyle(color: Color(0xFF6366F1), fontWeight: FontWeight.w600),
+            ),
+          ),
+      ],
+    );
+  }
+
+  Widget _buildVisualCatalogCTA() {
+    return Padding(
+      padding: const EdgeInsets.only(top: 32.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            "Explore Knowledge",
+            style: TextStyle(
+              color: Color(0xFF1E293B),
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 16),
+          Container(
+            width: double.infinity,
+            height: 140,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(24),
+              gradient: const LinearGradient(
+                colors: [Color(0xFF0F172A), Color(0xFF1E293B)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.1),
+                  blurRadius: 15,
+                  offset: const Offset(0, 8),
+                ),
+              ],
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(24.0),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Text(
+                          "Course Catalog",
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          "Discover 50+ professional courses",
+                          style: TextStyle(
+                            color: Colors.white.withOpacity(0.7),
+                            fontSize: 14,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  ElevatedButton(
+                    onPressed: () => Navigator.pushNamed(context, '/catalog'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF6366F1),
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      elevation: 0,
+                    ),
+                    child: const Icon(Icons.arrow_forward),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildEnrolledCourses() {
+    return StreamBuilder<List<Map<String, dynamic>>>(
+      stream: EnrollmentService().streamEnrolledCourses(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        }
+        
+        final courses = snapshot.data ?? [];
+        if (courses.isEmpty) {
+          return _buildEmptyEnrollment();
+        }
+
+        return SizedBox(
+          height: 220,
+          child: ListView.builder(
+            scrollDirection: Axis.horizontal,
+            itemCount: courses.length,
+            itemBuilder: (context, index) {
+              final course = courses[index];
+              return _buildCourseCard(course);
+            },
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildCourseCard(Map<String, dynamic> course) {
+    final color = Color(course['color'] ?? 0xFF6366F1);
+    return Container(
+      width: 260,
+      margin: const EdgeInsets.only(right: 16),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.03),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+        border: Border.all(color: const Color(0xFFF1F5F9)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: color.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(_getIconFromName(course['icon']), color: color, size: 20),
+              ),
+              const Spacer(),
+              const Icon(Icons.more_vert, color: Color(0xFF94A3B8), size: 18),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Text(
+            course['title'] ?? 'Course',
+            style: const TextStyle(
+              color: Color(0xFF1E293B),
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+            ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+          StreamBuilder<List<String>>(
+            stream: EnrollmentService().getCompletedLessons(course['id']),
+            builder: (context, snapshot) {
+              final completed = snapshot.data?.length ?? 0;
+              // Fallback to 10 if total lessons count isn't in course doc
+              final total = course['lessonCount'] ?? 10;
+              final progress = (completed / total).clamp(0.0, 1.0);
+              final progressPercent = (progress * 100).toInt();
+
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    "Progress: $progressPercent%",
+                    style: const TextStyle(color: Color(0xFF64748B), fontSize: 11),
+                  ),
+                  const SizedBox(height: 8),
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(4),
+                    child: LinearProgressIndicator(
+                      value: progress,
+                      backgroundColor: color.withOpacity(0.1),
+                      valueColor: AlwaysStoppedAnimation<Color>(color),
+                      minHeight: 4,
+                    ),
+                  ),
+                ],
+              );
+            },
+          ),
+          const Spacer(),
+          const SizedBox(height: 12),
+          SizedBox(
+            width: double.infinity,
+            height: 36,
+            child: TextButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => CourseDetailScreen(
+                      courseId: course['id'],
+                      courseName: course['title'],
+                      courseColor: color,
+                    ),
+                  ),
+                );
+              },
+              style: TextButton.styleFrom(
+                backgroundColor: const Color(0xFFF8FAFC),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                padding: EdgeInsets.zero,
+              ),
+              child: const Text(
+                "Continue",
+                style: TextStyle(
+                  color: Color(0xFF6366F1),
+                  fontWeight: FontWeight.bold,
+                  fontSize: 12,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildEmptyEnrollment() {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(32),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: const Color(0xFFF1F5F9)),
+      ),
+      child: Column(
+        children: [
+          Icon(Icons.school_outlined, color: Colors.grey.shade300, size: 48),
+          const SizedBox(height: 16),
+          const Text(
+            "No active courses",
+            style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF475569)),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            "Enroll in a course to start your learning journey.",
+            textAlign: TextAlign.center,
+            style: TextStyle(color: Colors.grey.shade500, fontSize: 13),
+          ),
+          const SizedBox(height: 20),
+          OutlinedButton(
+            onPressed: () => Navigator.pushNamed(context, '/courses'),
+            child: const Text("Browse Catalog"),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildQuickStats() {
+    return Row(
+      children: [
+        _buildStatCard("Badges", "5", Icons.workspace_premium, Colors.amber),
+        const SizedBox(width: 16),
+        _buildStatCard("Quizzes", "12", Icons.quiz, Colors.blue),
+      ],
+    );
+  }
+
+  Widget _buildStatCard(String label, String value, IconData icon, Color color) {
+    return Expanded(
+      child: Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: const Color(0xFFF1F5F9)),
+        ),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: color.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(icon, color: color, size: 24),
+            ),
+            const SizedBox(width: 16),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  value,
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF1E293B),
+                  ),
+                ),
+                Text(
+                  label,
+                  style: const TextStyle(
+                    fontSize: 12,
+                    color: Color(0xFF64748B),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  String _getMonth(int month) {
+    const months = [
+      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+    ];
+    return months[month - 1];
+  }
+
+  IconData _getIconFromName(String? iconName) {
+    switch (iconName?.toLowerCase()) {
+      case 'code': return Icons.code;
+      case 'data_usage': return Icons.data_usage;
+      case 'analytics': return Icons.analytics;
+      case 'storage': return Icons.storage;
+      case 'computer': return Icons.computer;
+      case 'cloud': return Icons.cloud;
+      case 'auto_awesome': return Icons.auto_awesome;
+      case 'smart_toy': return Icons.smart_toy;
+      case 'security': return Icons.security;
+      default: return Icons.school;
+    }
+  }
+
 }

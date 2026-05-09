@@ -257,85 +257,101 @@ class _LessonList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return StreamBuilder<QuerySnapshot>(
-      stream: FirebaseFirestore.instance
-          .collection('courses/$courseId/sections/$sectionId/lessons')
-          .orderBy('order')
-          .snapshots(),
-      builder: (context, snapshot) {
-        final lessons = snapshot.data?.docs ?? [];
+    return StreamBuilder<List<String>>(
+      stream: EnrollmentService().getCompletedLessons(courseId),
+      builder: (context, completedSnapshot) {
+        final completedLessons = completedSnapshot.data ?? [];
+        
+        return StreamBuilder<QuerySnapshot>(
+          stream: FirebaseFirestore.instance
+              .collection('courses/$courseId/sections/$sectionId/lessons')
+              .orderBy('order')
+              .snapshots(),
+          builder: (context, snapshot) {
+            final lessons = snapshot.data?.docs ?? [];
 
-        if (lessons.isEmpty) {
-          return Padding(
-            padding: const EdgeInsets.all(16),
-            child: Text(
-              'No lessons yet',
-              style: TextStyle(color: Colors.grey.shade500),
-            ),
-          );
-        }
+            if (lessons.isEmpty) {
+              return Padding(
+                padding: const EdgeInsets.all(16),
+                child: Text(
+                  'No lessons yet',
+                  style: TextStyle(color: Colors.grey.shade500),
+                ),
+              );
+            }
 
-        return Column(
-          children: lessons.map((lesson) {
-            final data = lesson.data() as Map<String, dynamic>;
-            final hasPdf = data['pdfUrl'] != null;
-            final hasVideo = data['videoUrl'] != null;
+            return Column(
+              children: lessons.map((lesson) {
+                final data = lesson.data() as Map<String, dynamic>;
+                final hasPdf = data['pdfUrl'] != null;
+                final hasVideo = data['videoUrl'] != null;
+                final isCompleted = completedLessons.contains(lesson.id);
 
-            return ListTile(
-              contentPadding: const EdgeInsets.symmetric(
-                horizontal: 16,
-                vertical: 4,
-              ),
-              leading: CircleAvatar(
-                backgroundColor: courseColor.withOpacity(0.1),
-                child: Icon(Icons.play_circle_outline, color: courseColor),
-              ),
-              title: Text(
-                data['title'] ?? '',
-                style: const TextStyle(fontWeight: FontWeight.w600),
-              ),
-              subtitle:
-                  data['description'] != null &&
-                      data['description'].toString().isNotEmpty
-                  ? Text(
-                      data['description'],
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    )
-                  : null,
-              // 👇 Show badges for available content
-              trailing: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  if (hasPdf) _Badge(label: 'PDF', color: Colors.red.shade400),
-                  if (hasPdf && hasVideo) const SizedBox(width: 4),
-                  if (hasVideo)
-                    _Badge(label: 'Video', color: Colors.blue.shade400),
-                  const SizedBox(width: 4),
-                  Icon(Icons.chevron_right, color: Colors.grey.shade400),
-                ],
-              ),
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => LessonScreen(
-                      courseId: courseId,
-                      sectionId: sectionId,
-                      lessonId: lesson.id,
-                      title: data['title'] ?? '',
-                      description: data['description'] ?? '',
-                      pdfUrl: data['pdfUrl'],
-                      videoUrl: data['videoUrl'],
-                      courseColor: courseColor,
+                return ListTile(
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 4,
+                  ),
+                  leading: CircleAvatar(
+                    backgroundColor: isCompleted 
+                        ? Colors.green.withOpacity(0.1) 
+                        : courseColor.withOpacity(0.1),
+                    child: Icon(
+                      isCompleted ? Icons.check : Icons.play_circle_outline, 
+                      color: isCompleted ? Colors.green : courseColor
                     ),
                   ),
+                  title: Text(
+                    data['title'] ?? '',
+                    style: TextStyle(
+                      fontWeight: FontWeight.w600,
+                      color: isCompleted ? Colors.grey : Colors.black87,
+                      decoration: isCompleted ? TextDecoration.lineThrough : null,
+                    ),
+                  ),
+                  subtitle:
+                      data['description'] != null &&
+                          data['description'].toString().isNotEmpty
+                      ? Text(
+                          data['description'],
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        )
+                      : null,
+                  trailing: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      if (hasPdf) _Badge(label: 'PDF', color: Colors.red.shade400),
+                      if (hasPdf && hasVideo) const SizedBox(width: 4),
+                      if (hasVideo)
+                        _Badge(label: 'Video', color: Colors.blue.shade400),
+                      const SizedBox(width: 4),
+                      Icon(Icons.chevron_right, color: Colors.grey.shade400),
+                    ],
+                  ),
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => LessonScreen(
+                          courseId: courseId,
+                          sectionId: sectionId,
+                          lessonId: lesson.id,
+                          title: data['title'] ?? '',
+                          description: data['description'] ?? '',
+                          pdfUrl: data['pdfUrl'],
+                          videoUrl: data['videoUrl'],
+                          courseColor: courseColor,
+                        ),
+                      ),
+                    );
+                  },
                 );
-              },
+              }).toList(),
             );
-          }).toList(),
+          },
         );
-      },
+      }
     );
   }
 }

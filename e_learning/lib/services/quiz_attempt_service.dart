@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../services/achievement_service.dart';
+import '../services/activity_service.dart';
 
 class QuizAttemptService {
   static final QuizAttemptService _instance = QuizAttemptService._internal();
@@ -22,7 +23,7 @@ class QuizAttemptService {
         'completedAt': null,
         'score': null,
         'totalQuestions': 0,
-        'answers': {}, 
+        'answers': {},
       });
 
       return attemptRef.id;
@@ -70,8 +71,7 @@ class QuizAttemptService {
       List<Map<String, dynamic>> incorrectQuestions = [];
 
       for (int i = 0; i < questionsSnapshot.docs.length; i++) {
-        final question =
-            questionsSnapshot.docs[i].data();
+        final question = questionsSnapshot.docs[i].data();
         final correctIndex = question['correctOptionIndex'] as int?;
 
         final answeredIndex = answers['$i'] as int?;
@@ -80,10 +80,16 @@ class QuizAttemptService {
           correctCount++;
         } else {
           final options = question['options'] as List<dynamic>? ?? [];
-          final correctAnswerText = (correctIndex != null && correctIndex >= 0 && correctIndex < options.length) 
-              ? options[correctIndex].toString() 
+          final correctAnswerText =
+              (correctIndex != null &&
+                  correctIndex >= 0 &&
+                  correctIndex < options.length)
+              ? options[correctIndex].toString()
               : 'Unknown';
-          final userAnswerText = (answeredIndex != null && answeredIndex >= 0 && answeredIndex < options.length)
+          final userAnswerText =
+              (answeredIndex != null &&
+                  answeredIndex >= 0 &&
+                  answeredIndex < options.length)
               ? options[answeredIndex].toString()
               : 'Unanswered';
 
@@ -126,6 +132,9 @@ class QuizAttemptService {
       if (completedCount >= 5) {
         await achievementSvc.checkAndUnlockBadge('quiz_master');
       }
+
+      // Log activity for heatmap
+      await ActivityService().logActivity(type: 'quiz_completed');
 
       return {
         'correctAnswers': correctCount,

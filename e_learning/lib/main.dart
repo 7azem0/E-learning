@@ -5,6 +5,7 @@ import 'package:e_learning/screens/admin_panel_screen.dart' hide ElevatedButton;
 import 'package:e_learning/widgets/auth_wrapper.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 import 'screens/home_screen.dart';
 import 'screens/login_screen.dart';
@@ -13,6 +14,8 @@ import 'screens/courses_screen.dart';
 import 'screens/profile_screen.dart';
 import 'screens/quizzes_analysis_screen.dart';
 import 'screens/smart_study_planner_screen.dart';
+import 'screens/course_progress_heatmap_screen.dart';
+import 'screens/catalog_screen.dart';
 import 'services/authentication_service.dart';
 
 void main() async {
@@ -28,58 +31,58 @@ class ELearningApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'E-Learning',
+      title: 'E-Learning Pro',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         useMaterial3: true,
-        scaffoldBackgroundColor: const Color(0xFFFAFAF8),
-        fontFamily: 'Georgia',
+        scaffoldBackgroundColor: const Color(0xFFFDFCFB),
+        textTheme: GoogleFonts.interTextTheme(
+          Theme.of(context).textTheme,
+        ),
         colorScheme: ColorScheme.fromSeed(
-          seedColor: Colors.black,
+          seedColor: const Color(0xFF6366F1),
+          primary: const Color(0xFF6366F1),
+          secondary: const Color(0xFFF59E0B), // Golden accent
+          surface: Colors.white,
           brightness: Brightness.light,
         ),
-        appBarTheme: const AppBarTheme(
+        appBarTheme: AppBarTheme(
           elevation: 0,
           centerTitle: true,
-          backgroundColor: Color(0xFFFAFAF8),
-          foregroundColor: Colors.black,
+          backgroundColor: const Color(0xFFFDFCFB),
+          foregroundColor: const Color(0xFF1E293B),
           surfaceTintColor: Colors.transparent,
-          titleTextStyle: TextStyle(
-            color: Colors.black,
-            fontFamily: 'Georgia',
+          titleTextStyle: GoogleFonts.playfairDisplay(
+            color: const Color(0xFF1E293B),
             fontSize: 24,
-            fontWeight: FontWeight.w700,
+            fontWeight: FontWeight.bold,
           ),
         ),
-        dividerTheme: const DividerThemeData(color: Color(0xFFE2E2E2)),
+        dividerTheme: const DividerThemeData(color: Color(0xFFF1F5F9)),
         inputDecorationTheme: InputDecorationTheme(
           filled: true,
           fillColor: Colors.white,
-          contentPadding: const EdgeInsets.symmetric(
-            horizontal: 16,
-            vertical: 14,
-          ),
+          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
           border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(2),
-            borderSide: const BorderSide(color: Color(0xFFD8D8D8)),
+            borderRadius: BorderRadius.circular(16),
+            borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
           ),
           enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(2),
-            borderSide: const BorderSide(color: Color(0xFFD8D8D8)),
+            borderRadius: BorderRadius.circular(16),
+            borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
           ),
-          errorBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(2),
-            borderSide: const BorderSide(color: Colors.red, width: 1),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(16),
+            borderSide: const BorderSide(color: Color(0xFF6366F1), width: 2),
           ),
-          labelStyle: const TextStyle(fontSize: 14),
         ),
         elevatedButtonTheme: ElevatedButtonThemeData(
           style: ElevatedButton.styleFrom(
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-            backgroundColor: Colors.black,
+            padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 16),
+            backgroundColor: const Color(0xFF1E293B),
             foregroundColor: Colors.white,
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(2),
+              borderRadius: BorderRadius.circular(16),
             ),
             elevation: 0,
           ),
@@ -89,8 +92,8 @@ class ELearningApp extends StatelessWidget {
           surfaceTintColor: Colors.transparent,
           elevation: 0,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(2),
-            side: const BorderSide(color: Color(0xFFE2E2E2)),
+            borderRadius: BorderRadius.circular(20),
+            side: const BorderSide(color: Color(0xFFF1F5F9)),
           ),
         ),
       ),
@@ -104,6 +107,8 @@ class ELearningApp extends StatelessWidget {
         '/admin': (context) => const AdminPanelScreen(),
         '/quizzes_analysis': (context) => const QuizzesAnalysisScreen(),
         '/study_planner': (context) => const SmartStudyPlannerScreen(),
+        '/heatmap': (context) => const CourseProgressHeatmapScreen(),
+        '/catalog': (context) => const CatalogScreen(),
       },
     );
   }

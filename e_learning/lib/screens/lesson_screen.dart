@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import '../services/authentication_service.dart';
 import '../services/discussion_service.dart';
+import '../services/activity_service.dart';
+import '../services/enrollment_service.dart';
 import 'dart:html' as html;
 import 'dart:ui_web' as ui;
 
@@ -46,6 +48,13 @@ class _LessonScreenState extends State<LessonScreen>
     _tabs.add(const Tab(text: 'Discussion'));
     _tabController = TabController(length: _tabs.length, vsync: this);
 
+    // Log lesson activity for progress heatmap
+    ActivityService().logActivity(
+      type: 'lesson_opened',
+      courseId: widget.courseId,
+      lessonId: widget.lessonId,
+    );
+
     // Register iframes for web
     if (kIsWeb) {
       if (widget.videoUrl != null) {
@@ -87,6 +96,35 @@ class _LessonScreenState extends State<LessonScreen>
           widget.title,
           style: const TextStyle(fontWeight: FontWeight.bold),
         ),
+        actions: [
+          StreamBuilder<List<String>>(
+            stream: EnrollmentService().getCompletedLessons(widget.courseId),
+            builder: (context, snapshot) {
+              final completed = snapshot.data?.contains(widget.lessonId) ?? false;
+              return Padding(
+                padding: const EdgeInsets.only(right: 8.0),
+                child: TextButton.icon(
+                  onPressed: completed ? null : () async {
+                    await EnrollmentService().completeLesson(widget.courseId, widget.lessonId);
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Lesson marked as completed!')),
+                      );
+                    }
+                  },
+                  icon: Icon(
+                    completed ? Icons.check_circle : Icons.check_circle_outline,
+                    color: Colors.white,
+                  ),
+                  label: Text(
+                    completed ? 'Completed' : 'Mark as Done',
+                    style: const TextStyle(color: Colors.white),
+                  ),
+                ),
+              );
+            },
+          ),
+        ],
         bottom: _tabs.length > 1
             ? TabBar(
                 controller: _tabController,

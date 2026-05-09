@@ -15,7 +15,7 @@ class CoursesScreen extends StatelessWidget {
       appBar: AppBar(
         elevation: 0,
         title: const Text(
-          "Courses",
+          "My Courses",
           style: TextStyle(fontWeight: FontWeight.w700, fontSize: 22),
         ),
         bottom: const PreferredSize(
@@ -26,17 +26,15 @@ class CoursesScreen extends StatelessWidget {
       drawer: const Menu(),
       body: Padding(
         padding: const EdgeInsets.all(16),
-        child: StreamBuilder<QuerySnapshot>(
-          stream: FirebaseFirestore.instance
-              .collection('courses')
-              .orderBy('createdAt', descending: true)
-              .snapshots(),
+        child: StreamBuilder<List<Map<String, dynamic>>>(
+          stream: EnrollmentService().streamEnrolledCourses(),
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
               return const Center(child: CircularProgressIndicator());
             }
 
-            if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+            final courses = snapshot.data ?? [];
+            if (courses.isEmpty) {
               return Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -48,17 +46,25 @@ class CoursesScreen extends StatelessWidget {
                     ),
                     const SizedBox(height: 16),
                     Text(
-                      'No courses available yet',
+                      'You haven\'t enrolled in any courses yet',
                       style: Theme.of(context).textTheme.titleLarge?.copyWith(
                         color: Colors.grey.shade600,
                       ),
+                    ),
+                    const SizedBox(height: 24),
+                    ElevatedButton(
+                      onPressed: () {
+                        // We need a way to browse all courses. 
+                        // I'll show a simple dialog for now or just print.
+                        _showBrowseCourses(context);
+                      },
+                      child: const Text("Browse Course Catalog"),
                     ),
                   ],
                 ),
               );
             }
 
-            final courses = snapshot.data!.docs;
             return GridView.builder(
               gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: 2,
@@ -68,8 +74,16 @@ class CoursesScreen extends StatelessWidget {
               ),
               itemCount: courses.length,
               itemBuilder: (context, index) {
-                final courseDoc = courses[index];
-                final course = CourseModel.fromFirestore(courseDoc);
+                final courseData = courses[index];
+                // Manually construct CourseModel from map
+                final course = CourseModel(
+                  id: courseData['id'],
+                  name: courseData['title'] ?? '',
+                  description: courseData['description'] ?? '',
+                  icon: CourseModel._getIconFromName(courseData['icon']),
+                  color: Color(courseData['color'] ?? 0xFF334155),
+                );
+                
                 return ModernCourseCard(
                   course: course,
                   onTap: () {
@@ -88,6 +102,79 @@ class CoursesScreen extends StatelessWidget {
               },
             );
           },
+        ),
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () => _showBrowseCourses(context),
+        tooltip: 'Enroll in new courses',
+        child: const Icon(Icons.add),
+      ),
+    );
+  }
+
+  void _showBrowseCourses(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) => DraggableScrollableSheet(
+        initialChildSize: 0.7,
+        maxChildSize: 0.9,
+        minChildSize: 0.5,
+        expand: false,
+        builder: (context, scrollController) => Column(
+          children: [
+            const Padding(
+              padding: EdgeInsets.all(16.0),
+              child: Text(
+                "Course Catalog",
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              ),
+            ),
+            const Divider(),
+            Expanded(
+              child: StreamBuilder<QuerySnapshot>(
+                stream: FirebaseFirestore.instance.collection('courses').snapshots(),
+                builder: (context, snapshot) {
+                  if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
+                  final allCourses = snapshot.data!.docs;
+                  return ListView.builder(
+                    controller: scrollController,
+                    itemCount: allCourses.length,
+                    itemBuilder: (context, index) {
+                      final doc = allCourses[index];
+                      final data = doc.data() as Map<String, dynamic>;
+                      final color = Color(data['color'] ?? 0xFF334155);
+                      return ListTile(
+                        leading: CircleAvatar(
+                          backgroundColor: color.withOpacity(0.1),
+                          child: Icon(CourseModel._getIconFromName(data['icon']), color: color),
+                        ),
+                        title: Text(data['title'] ?? 'Course'),
+                        subtitle: Text(data['description'] ?? '', maxLines: 1, overflow: TextOverflow.ellipsis),
+                        trailing: const Icon(Icons.chevron_right),
+                        onTap: () {
+                          Navigator.pop(context);
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => CourseDetailScreen(
+                                courseId: doc.id,
+                                courseName: data['title'] ?? '',
+                                courseColor: color,
+                              ),
+                            ),
+                          );
+                        },
+                      );
+                    },
+                  );
+                }
+              ),
+            ),
+          ],
         ),
       ),
     );

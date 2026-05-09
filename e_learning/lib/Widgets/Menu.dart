@@ -83,7 +83,7 @@ class Menu extends StatelessWidget {
               ),
               _DrawerMenuItem(
                 icon: Icons.school_outlined,
-                label: "Courses",
+                label: "My Courses",
                 onTap: () {
                   Navigator.pop(context);
                   Navigator.pushNamed(context, '/courses');
@@ -111,6 +111,14 @@ class Menu extends StatelessWidget {
                 onTap: () {
                   Navigator.pop(context);
                   Navigator.pushNamed(context, '/study_planner');
+                },
+              ),
+              _DrawerMenuItem(
+                icon: Icons.local_fire_department_outlined,
+                label: "Activity Heatmap",
+                onTap: () {
+                  Navigator.pop(context);
+                  Navigator.pushNamed(context, '/heatmap');
                 },
               ),
               if (role == 'admin')
