@@ -97,6 +97,14 @@ class Menu extends StatelessWidget {
                   Navigator.pushNamed(context, '/profile');
                 },
               ),
+              _DrawerMenuItem(
+                icon: Icons.auto_awesome_outlined,
+                label: "Quiz Analysis",
+                onTap: () {
+                  Navigator.pop(context);
+                  Navigator.pushNamed(context, '/quizzes_analysis');
+                },
+              ),
               if (role == 'admin')
                 _DrawerMenuItem(
                   icon: Icons.admin_panel_settings_outlined,

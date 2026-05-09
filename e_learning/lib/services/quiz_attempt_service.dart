@@ -66,6 +66,7 @@ class QuizAttemptService {
 
       int correctCount = 0;
       int totalQuestions = questionsSnapshot.docs.length;
+      List<Map<String, dynamic>> incorrectQuestions = [];
 
       for (int i = 0; i < questionsSnapshot.docs.length; i++) {
         final question =
@@ -76,6 +77,20 @@ class QuizAttemptService {
 
         if (answeredIndex != null && answeredIndex == correctIndex) {
           correctCount++;
+        } else {
+          final options = question['options'] as List<dynamic>? ?? [];
+          final correctAnswerText = (correctIndex != null && correctIndex >= 0 && correctIndex < options.length) 
+              ? options[correctIndex].toString() 
+              : 'Unknown';
+          final userAnswerText = (answeredIndex != null && answeredIndex >= 0 && answeredIndex < options.length)
+              ? options[answeredIndex].toString()
+              : 'Unanswered';
+
+          incorrectQuestions.add({
+            'question': question['question'] ?? 'Unknown question',
+            'correctAnswer': correctAnswerText,
+            'userAnswer': userAnswerText,
+          });
         }
       }
 
@@ -88,6 +103,7 @@ class QuizAttemptService {
         'score': percentage,
         'correctAnswers': correctCount,
         'totalQuestions': totalQuestions,
+        'incorrectQuestions': incorrectQuestions,
       });
 
       return {
