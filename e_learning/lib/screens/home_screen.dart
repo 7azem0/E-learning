@@ -243,7 +243,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   const SizedBox(height: 16),
                   _buildMoodTracker(),
                   const SizedBox(height: 32),
-                  _buildQuickStats(),
+                  _buildLearningInsights(),
                 ],
               ),
             ),
@@ -306,7 +306,12 @@ class _HomeScreenState extends State<HomeScreen> {
             onTap: () => Navigator.pushNamed(context, '/profile'),
             child: CircleAvatar(
               backgroundColor: const Color(0xFF6366F1).withOpacity(0.1),
-              child: const Icon(Icons.person, color: Color(0xFF6366F1), size: 20),
+              backgroundImage: AuthService().currentUser?.avatarUrl != null
+                  ? NetworkImage(AuthService().currentUser!.avatarUrl!)
+                  : null,
+              child: AuthService().currentUser?.avatarUrl == null
+                  ? const Icon(Icons.person, color: Color(0xFF6366F1), size: 20)
+                  : null,
             ),
           ),
         ),
@@ -684,57 +689,84 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildQuickStats() {
-    return Row(
+  Widget _buildLearningInsights() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildStatCard("Badges", "5", Icons.workspace_premium, Colors.amber),
-        const SizedBox(width: 16),
-        _buildStatCard("Quizzes", "12", Icons.quiz, Colors.blue),
+        _buildSectionHeader("Learning Insights", null),
+        const SizedBox(height: 16),
+        Row(
+          children: [
+            _buildInsightCard(
+              "AI Analysis",
+              "Identify Gaps",
+              Icons.analytics_outlined,
+              const Color(0xFF6366F1),
+              () => Navigator.pushNamed(context, '/quizzes_analysis'),
+            ),
+            const SizedBox(width: 16),
+            _buildInsightCard(
+              "Recent Mood",
+              "Self-Awareness",
+              Icons.auto_awesome,
+              const Color(0xFFEC4899),
+              () => Navigator.pushNamed(context, '/profile'),
+            ),
+          ],
+        ),
       ],
     );
   }
 
-  Widget _buildStatCard(String label, String value, IconData icon, Color color) {
+  Widget _buildInsightCard(String title, String subtitle, IconData icon, Color color, VoidCallback onTap) {
     return Expanded(
-      child: Container(
-        padding: const EdgeInsets.all(20),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: const Color(0xFFF1F5F9)),
-        ),
-        child: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                color: color.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(12),
+      child: GestureDetector(
+        onTap: onTap,
+        child: Container(
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(24),
+            boxShadow: [
+              BoxShadow(
+                color: color.withOpacity(0.05),
+                blurRadius: 20,
+                offset: const Offset(0, 10),
               ),
-              child: Icon(icon, color: color, size: 24),
-            ),
-            const SizedBox(width: 16),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  value,
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFF1E293B),
-                  ),
+            ],
+            border: Border.all(color: const Color(0xFFF1F5F9)),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: color.withOpacity(0.1),
+                  shape: BoxShape.circle,
                 ),
-                Text(
-                  label,
-                  style: const TextStyle(
-                    fontSize: 12,
-                    color: Color(0xFF64748B),
-                  ),
+                child: Icon(icon, color: color, size: 24),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                title,
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF1E293B),
                 ),
-              ],
-            ),
-          ],
+              ),
+              const SizedBox(height: 4),
+              Text(
+                subtitle,
+                style: TextStyle(
+                  fontSize: 12,
+                  color: color.withOpacity(0.8),
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

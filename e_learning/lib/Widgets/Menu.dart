@@ -37,12 +37,20 @@ class Menu extends StatelessWidget {
                           color: Colors.white,
                           shape: BoxShape.circle,
                           border: Border.all(color: Colors.black, width: 1),
+                          image: AuthService().currentUser?.avatarUrl != null
+                              ? DecorationImage(
+                                  image: NetworkImage(AuthService().currentUser!.avatarUrl!),
+                                  fit: BoxFit.cover,
+                                )
+                              : null,
                         ),
-                        child: const Icon(
-                          Icons.person,
-                          size: 32,
-                          color: Colors.black,
-                        ),
+                        child: AuthService().currentUser?.avatarUrl == null
+                            ? const Icon(
+                                Icons.person,
+                                size: 32,
+                                color: Colors.black,
+                              )
+                            : null,
                       ),
                       const SizedBox(height: 10),
                       Text(

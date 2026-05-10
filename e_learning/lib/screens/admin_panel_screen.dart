@@ -187,84 +187,107 @@ class AdminPanelScreen extends StatelessWidget {
                     );
                   }
 
+                  final groupedQuizzes = <String, List<QueryDocumentSnapshot>>{};
+                  for (final quiz in quizzes) {
+                    final quizData = quiz.data() as Map<String, dynamic>;
+                    final courseId = quizData['courseId'] as String? ?? 'unassigned';
+                    groupedQuizzes.putIfAbsent(courseId, () => []).add(quiz);
+                  }
+
                   return Column(
-                    children: quizzes.map((quiz) {
-                      final quizData = quiz.data() as Map<String, dynamic>;
-                      String courseTitle = 'Unassigned';
-                      for (final course in courses) {
-                        if (course.id == quizData['courseId']) {
-                          courseTitle = course['title'] ?? 'Unassigned';
-                          break;
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: groupedQuizzes.entries.map<Widget>((entry) {
+                      final courseId = entry.key;
+                      final courseQuizzes = entry.value;
+
+                      String courseTitle = 'Unassigned Quizzes';
+                      if (courseId != 'unassigned') {
+                        for (final course in courses) {
+                          if (course.id == courseId) {
+                            courseTitle = course['title'] ?? 'Course';
+                            break;
+                          }
                         }
                       }
-                      return Card(
-                        margin: const EdgeInsets.only(bottom: 12),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(14),
-                        ),
-                        child: ListTile(
-                          contentPadding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 8,
-                          ),
-                          title: Text(quizData['title'] ?? ''),
-                          subtitle: Text(courseTitle),
-                          trailing: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text('${quizData['questionCount'] ?? 10} Qs'),
-                              IconButton(
-                                icon: const Icon(
-                                  Icons.delete,
-                                  color: Colors.redAccent,
-                                ),
-                                onPressed: () async {
-                                  final confirmed = await showDialog<bool>(
-                                    context: context,
-                                    builder: (context) => AlertDialog(
-                                      title: const Text('Delete Quiz'),
-                                      content: const Text(
-                                        'Are you sure you want to delete this quiz and its questions?',
-                                      ),
-                                      actions: [
-                                        TextButton(
-                                          onPressed: () =>
-                                              Navigator.pop(context, false),
-                                          child: const Text('Cancel'),
-                                        ),
-                                        TextButton(
-                                          onPressed: () =>
-                                              Navigator.pop(context, true),
-                                          child: const Text(
-                                            'Delete',
-                                            style: TextStyle(color: Colors.red),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  );
-                                  if (confirmed == true) {
-                                    final result = await AdminService()
-                                        .deleteQuiz(quiz.id);
-                                    if (context.mounted) {
-                                      ScaffoldMessenger.of(
-                                        context,
-                                      ).showSnackBar(
-                                        SnackBar(
-                                          content: Text(
-                                            result == 'Success'
-                                                ? 'Quiz deleted'
-                                                : 'Failed to delete quiz',
-                                          ),
-                                        ),
-                                      );
-                                    }
-                                  }
-                                },
+
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.only(top: 16, bottom: 8),
+                            child: Text(
+                              courseTitle,
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: Color(0xFF64748B),
+                                fontSize: 13,
+                                letterSpacing: 1.1,
                               ),
-                            ],
+                            ),
                           ),
-                        ),
+                          ...courseQuizzes.map((quiz) {
+                            final quizData = quiz.data() as Map<String, dynamic>;
+                            return Card(
+                              margin: const EdgeInsets.only(bottom: 8),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(14),
+                              ),
+                              child: ListTile(
+                                contentPadding: const EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                  vertical: 4,
+                                ),
+                                title: Text(
+                                  quizData['title'] ?? '',
+                                  style: const TextStyle(fontWeight: FontWeight.w600),
+                                ),
+                                subtitle: Text('${quizData['questionCount'] ?? 10} Questions'),
+                                trailing: IconButton(
+                                  icon: const Icon(
+                                    Icons.delete_outline,
+                                    color: Colors.redAccent,
+                                  ),
+                                  onPressed: () async {
+                                    final confirmed = await showDialog<bool>(
+                                      context: context,
+                                      builder: (context) => AlertDialog(
+                                        title: const Text('Delete Quiz'),
+                                        content: const Text(
+                                          'Are you sure you want to delete this quiz and its questions?',
+                                        ),
+                                        actions: [
+                                          TextButton(
+                                            onPressed: () => Navigator.pop(context, false),
+                                            child: const Text('Cancel'),
+                                          ),
+                                          TextButton(
+                                            onPressed: () => Navigator.pop(context, true),
+                                            child: const Text(
+                                              'Delete',
+                                              style: TextStyle(color: Colors.red),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    );
+                                    if (confirmed == true) {
+                                      final result = await AdminService().deleteQuiz(quiz.id);
+                                      if (context.mounted) {
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                          SnackBar(
+                                            content: Text(
+                                              result == 'Success' ? 'Quiz deleted' : 'Failed to delete quiz',
+                                            ),
+                                          ),
+                                        );
+                                      }
+                                    }
+                                  },
+                                ),
+                              ),
+                            );
+                          }).toList(),
+                        ],
                       );
                     }).toList(),
                   );
